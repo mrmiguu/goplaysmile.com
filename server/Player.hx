@@ -6,6 +6,7 @@ using Consts;
 using Math;
 using Std;
 using sys.io.File;
+using sys.FileSystem;
 
 class Player {
     var g: Globals;
@@ -32,6 +33,8 @@ class Player {
         this.user = user;
         this.pass = pass;
         socket = s;
+
+        'accounts'.createDirectory();
         save();
     }
 
@@ -59,6 +62,7 @@ class Player {
         setColor(roygbiv.charAt(user.length%7));
         reset();
         g.out.addLetter(socket,['init']);
+        trace('addLetter(socket,[\'init\'])');
 
         // give player everyone else's data
         informColors();

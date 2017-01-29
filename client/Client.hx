@@ -63,7 +63,8 @@ class Client extends Game {
                 var keyButton = new Button(g,g.login,'keys/blank');
                 keyButton.x = k*33+xOff;
                 keyButton.y = r*55+keysY;
-                keyButton.addChild(rows[r].charAt(k).text(20,15,18));
+                var keyText = rows[r].charAt(k).text(20,15,18);
+                keyButton.addChild(keyText);
                 keyButton.onPop(function()
                     userField.setText(userField.getText() + rows[r].charAt(k))
                 );
@@ -75,14 +76,15 @@ class Client extends Game {
         var undoButton = new Button(g,g.login,'key_undo/blank');
         undoButton.x=keysX+330;
         undoButton.y=keysY;
-        undoButton.addChild('Undo'.text(35,15,18));
+        var undoText = 'Undo'.text(35,15,18);
+        undoButton.addChild(undoText);
         undoButton.onPop(function()
             userField.setText(userField.getText().substr(0,g.user.length-1))
         );
 
-        g.login.addChild(undoButton);
         g.login.addChild(userField);
         g.login.addChild(loginButton);
+        g.login.addChild(undoButton);
         addChild(g.login);
     }
 

@@ -35,7 +35,7 @@ class Server extends Sprite {
 
         // listener.setFastSend(true);
         listener.setBlocking(false);
-        listener.bind(new Host('192.168.1.152'), 4200);
+        listener.bind(new Host('192.168.1.173'), 4200);
         listener.listen(100);
         readers.push(listener);
 
@@ -77,6 +77,7 @@ class Server extends Sprite {
     }
 
     function accountInfoArrived(index: Socket, user: String, pass: String) {
+        trace('accountInfoArrived');
         var player = g.players[index] = new Player(g, user, pass, index);
         player.addCard(g.c1);
         player.init(); // pass around their to-from

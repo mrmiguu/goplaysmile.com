@@ -5,6 +5,8 @@ package;
 import haxe.macro.Compiler;
 import haxe.macro.Context;
 import haxe.macro.Expr;
+#else
+import DefaultAssetLibrary;
 #end
 
 @:access(lime.app.Application)
@@ -12,7 +14,7 @@ import haxe.macro.Expr;
 @:access(openfl.display.Stage)
 
 
-class ApplicationMain {
+@:dox(hide) class ApplicationMain {
 	
 	
 	#if !macro
@@ -26,7 +28,7 @@ class ApplicationMain {
 		
 		config = {
 			
-			build: "56",
+			build: "70",
 			company: "",
 			file: "GPS",
 			fps: 61,
@@ -86,34 +88,16 @@ class ApplicationMain {
 		var app = new openfl.display.Application ();
 		app.create (config);
 		
+		var library = new DefaultAssetLibrary ();
+		lime.utils.Assets.registerLibrary ("default", library);
+		
 		preloader = getPreloader ();
-		preloader.onComplete.add (registerLibrary);
 		app.setPreloader (preloader);
-		preloader.onComplete.add (init);
 		preloader.create (config);
+		preloader.onComplete.add (start);
+		preloader.addLibrary (library);
 		
-		#if (js && html5)
-		var urls = [];
-		var types = [];
-		
-		
-		
-		if (config.assetsPrefix != null) {
-			
-			for (i in 0...urls.length) {
-				
-				if (types[i] != lime.Assets.AssetType.FONT) {
-					
-					urls[i] = config.assetsPrefix + urls[i];
-					
-				}
-				
-			}
-			
-		}
-		
-		preloader.load (urls, types);
-		#end
+		preloader.load ();
 		
 		var result = app.exec ();
 		
@@ -125,7 +109,7 @@ class ApplicationMain {
 	
 	
 	#if (js && html5)
-	@:keep @:expose("lime.embed")
+	@:keep @:expose("GPS.embed")
 	public static function embed (element:Dynamic, width:Null<Int> = null, height:Null<Int> = null, background:String = null, assetsPrefix:String = null) {
 		
 		var htmlElement:js.html.Element = null;
@@ -185,50 +169,21 @@ class ApplicationMain {
 	}
 	
 	
-	@:keep @:expose("openfl.embed")
+	@:keep @:expose("lime.embed")
 	public static function _embed (element:Dynamic, width:Null<Int> = null, height:Null<Int> = null, background:String = null, assetsPrefix:String = null) {
 		
 		embed (element, width, height, background, assetsPrefix);
 		
 	}
+	
+	
+	@:keep @:expose("openfl.embed")
+	public static function _embed2 (element:Dynamic, width:Null<Int> = null, height:Null<Int> = null, background:String = null, assetsPrefix:String = null) {
+		
+		embed (element, width, height, background, assetsPrefix);
+		
+	}
 	#end
-	
-	
-	public static function init ():Void {
-		
-		var loaded = 0;
-		var total = 0;
-		var library_onLoad = function (__) {
-			
-			loaded++;
-			
-			if (loaded == total) {
-				
-				start ();
-				
-			}
-			
-		}
-		
-		preloader = null;
-		
-		
-		
-		
-		if (total == 0) {
-			
-			start ();
-			
-		}
-		
-	}
-	
-	
-	private static function registerLibrary ():Void {
-		
-		lime.Assets.registerLibrary ("default", new DefaultAssetLibrary ());
-		
-	}
 	
 	
 	public static function start ():Void {
@@ -358,7 +313,7 @@ class ApplicationMain {
 
 
 @:build(DocumentClass.build())
-@:keep class DocumentClass extends Client {}
+@:keep @:dox(hide) class DocumentClass extends Client {}
 
 
 #else
