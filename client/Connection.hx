@@ -86,6 +86,8 @@ class Connection extends Sprite implements IButton {
 
     function initArrived() {
         trace('initArrived');
+        // switch to the logged-in screen
+        g.radio.push(g.toFrom);
         g.t.reset();
     }
 

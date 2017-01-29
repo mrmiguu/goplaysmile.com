@@ -46,7 +46,7 @@ class Consts {
         m.push(serial.toString());
     }
 
-    public static inline function login(g: Globals, user: String, pass: String) {
+    public static inline function connect(g: Globals, user: String, pass: String) {
         return new Connection(g, HOST, PORT, user, pass.encode());
     }
 
@@ -62,7 +62,7 @@ class Consts {
         return serial.unserialize().string();
     }
 
-    public static inline function text(s: String, x: Float, y: Float, pt: Int) {
+    public static inline function text(s: String, x: Float, y: Float, pt: Int, c=FONT_COLOR) {
         var t = new TextField();
         t.embedFonts = true;
         t.text = s;
@@ -74,7 +74,7 @@ class Consts {
         t.setTextFormat(new TextFormat(
             'assets/etc/lucon.ttf'.getFont().fontName,
             pt,
-            Consts.FONT_COLOR,
+            c,
             true
         ));
 

@@ -13,14 +13,11 @@ using Std;
 
 class Client extends Game {
     var g = new Globals();
-    var radio: Radio;
-    var login = new Game();
-    var toFrom = new Game();
-    var inGame = new Game();
     var slide = 'etc/slide.ogg'.sound();
     var loginText: TextField;
     var cardText: TextField;
     var connection: Connection;
+    var userField: Field;
 
     public function new() {
         super();
@@ -31,48 +28,67 @@ class Client extends Game {
         scaleY = scaleX = stage.stageWidth.scale(stage.stageHeight);
 
         var bgm = 'etc/bgm.ogg'.sound();
-        bgm.play(0, 16085); // 420 hours
+        // bgm.play(0, 16085); // 420 hours
 
         loginState();
         toFromState();
         inGameState();
         
-        radio = new Radio(login, toFrom);
-        radio.add(inGame);
-
-        radio.push(login);
+        g.radio = new Radio(g.login,g.toFrom);
+        g.radio.add(g.inGame);
+        g.radio.push(g.login);
     }
 
     function loginState() {
-        var loginButton = new Button(login, 'login/login');
+        var loginButton = new Button(g,g.login,'login/login');
 
         loginButton.x = loginButton.width.center(Consts.WIDTH/2);
         loginButton.y = loginButton.height.center(Consts.HEIGHT/2);
         loginButton.onPop(connect);
 
-        // loginText = 'Richard'.textBox(0, 0, 18);
+        userField = new Field(g,Consts.WIDTH/2,loginButton.y/2);
 
-        // var keyButtons = [];
+        var rows = ['1234567890','QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];
+        var keysX=400.center(Consts.WIDTH/2).int();
+        var keysY=Consts.HEIGHT-225;
 
-        // 0~9 and A~Z
-        for (L in 0...36) {
-            var keyButton = new Button(login,'keys/blank');
-            keyButton.x = (L%10)*33;
-            keyButton.y = (L/10).int()*55;
-            keyButton.addChild('${L%10}'.text(21,15,18));
-            login.addChild(keyButton);
+        for (r in 0...rows.length) {
+            var xOff = keysX;
+
+            if (r>=1) xOff+=16;
+            if (r>=2) xOff+=8;
+            if (r>=3) xOff+=16;
+
+            for (k in 0...rows[r].length) {
+                var keyButton = new Button(g,g.login,'keys/blank');
+                keyButton.x = k*33+xOff;
+                keyButton.y = r*55+keysY;
+                keyButton.addChild(rows[r].charAt(k).text(20,15,18));
+                keyButton.onPop(function()
+                    userField.setText(userField.getText() + rows[r].charAt(k))
+                );
+
+                g.login.addChild(keyButton);
+            }
         }
-        
-        // login.addChild(loginText);
-        login.addChild(loginButton);
-        addChild(login);
+
+        var undoButton = new Button(g,g.login,'key_undo/blank');
+        undoButton.x=keysX+330;
+        undoButton.y=keysY;
+        undoButton.addChild('Undo'.text(35,15,18));
+        undoButton.onPop(function()
+            userField.setText(userField.getText().substr(0,g.user.length-1))
+        );
+
+        g.login.addChild(undoButton);
+        g.login.addChild(userField);
+        g.login.addChild(loginButton);
+        addChild(g.login);
     }
 
     function connect() {
-        connection = g.login(g.user='Richard', 'Richard');
+        connection = g.connect(g.user=userField.getText(),'Richard');
         addChild(connection);
-        // switch to the logged-in screen
-        radio.push(toFrom);
     }
 
     function toFromState() {
@@ -81,14 +97,14 @@ class Client extends Game {
 
         card.addEventListener(MouseEvent.CLICK, function(m) {
             slide.play();
-            radio.push(inGame);
+            g.radio.push(g.inGame);
         });
 
         cardText = ''.text(Consts.WIDTH/2, card.height/2, 18);
 
         card.addChild(cardText);
-        toFrom.addChild(card);
-        addChild(toFrom);
+        g.toFrom.addChild(card);
+        addChild(g.toFrom);
     }
 
     function inGameState() {
@@ -97,17 +113,17 @@ class Client extends Game {
         gps.y = gps.x = gps.width.center(Consts.WIDTH / 2);
 
         // setup viewport (over gps)
-        var view = new Viewport(g, 49, 37, 308, 174, gps, inGame);
-        inGame.addAnimation(view);
+        var view = new Viewport(g, 49, 37, 308, 174, gps, g.inGame);
+        g.inGame.addAnimation(view);
         
         // setup the roller for the card instructions (spins)
         var roller = 'roller/overlay.png'.sprite();
         roller.y = Consts.HEIGHT - roller.height;
 
         g.v = view;
-        g.toFrom = toFrom;
+        // g.g.toFrom = g.toFrom;
         g.toFromText = cardText;
-        g.inGame = inGame;
+        // g.g.inGame = g.inGame;
 
         // setup the entire terrain system
         var terrain = new Terrain(g);
@@ -129,15 +145,15 @@ class Client extends Game {
         c1.i(223);
         c1.i(263);
 
-        inGame.addChild(c1.sprite);
-        inGame.addAnimation(c1);
-        inGame.addChild(roller);
-        inGame.addChild(terrain);
-        inGame.addChild(gps);
-        inGame.addChild(view);
-        inGame.addChild(g.l.text);
-        inGame.addChild(g.l);
-        inGame.addAnimation(g.l);
+        g.inGame.addChild(c1.sprite);
+        g.inGame.addAnimation(c1);
+        g.inGame.addChild(roller);
+        g.inGame.addChild(terrain);
+        g.inGame.addChild(gps);
+        g.inGame.addChild(view);
+        g.inGame.addChild(g.l.text);
+        g.inGame.addChild(g.l);
+        g.inGame.addAnimation(g.l);
 
         // setup the entire die system
         // -- the die needs the terrain handle because
@@ -149,19 +165,19 @@ class Client extends Game {
                     + die.height
                     - roller.height;
 
-        inGame.addChild(die);
-        inGame.addAnimation(die);
+        g.inGame.addChild(die);
+        g.inGame.addAnimation(die);
         
         // create the example paperdoll
         var pdH = new Paperdoll('headlights',die);
-        inGame.addChild(pdH);
-        inGame.addAnimation(pdH);
+        g.inGame.addChild(pdH);
+        g.inGame.addAnimation(pdH);
         
         // set our die's paperdoll
         die.paperdoll = pdH;
 
         // exp bar is a gui element        
-        inGame.addChild(bar);
-        addChild(inGame);
+        g.inGame.addChild(bar);
+        addChild(g.inGame);
     }
 }

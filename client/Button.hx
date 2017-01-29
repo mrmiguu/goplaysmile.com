@@ -6,16 +6,17 @@ import openfl.events.MouseEvent;
 using Consts;
 
 class Button extends Sprite implements IButton {
-    var push = 'etc/push.ogg'.sound();
-    var pop = 'etc/pop.ogg'.sound();
     var pushFn = function(){};
     var popFn = function(){};
     var up: Sprite;
     var down: Sprite;
     var pushed = false;
+    var g: Globals;
 
-    public function new(parent: Sprite, dir: String) {
+    public function new(g: Globals, parent: Sprite, dir: String) {
         super();
+
+        this.g = g;
         
         up = '${dir}_up.png'.sprite();
         down = '${dir}_down.png'.sprite();
@@ -41,7 +42,7 @@ class Button extends Sprite implements IButton {
         }
 
         pushed = true;
-        push.play();
+        g.pushSfx();
         up.visible = false;
         down.visible = true;
         pushFn();
@@ -61,7 +62,7 @@ class Button extends Sprite implements IButton {
 
     public function popOut() {
         if (!pushed) return;
-        pop.play();
+        g.popSfx();
         reset();
         popFn();
         pushed = false;
