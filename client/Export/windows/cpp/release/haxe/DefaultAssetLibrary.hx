@@ -136,6 +136,7 @@ import sys.FileSystem;
 		id = "assets/key_undo/blank_up.png";useManifest = true;
 		id = "assets/login/login_down.png";useManifest = true;
 		id = "assets/login/login_up.png";useManifest = true;
+		id = "assets/login/pass.png";useManifest = true;
 		id = "assets/lvl/exp.png";useManifest = true;
 		id = "assets/lvl/fireworks.png";useManifest = true;
 		id = "assets/lvl/up.ogg";useManifest = true;
@@ -421,6 +422,7 @@ import sys.FileSystem;
 
 #if !display
 #if flash
+
 
 
 

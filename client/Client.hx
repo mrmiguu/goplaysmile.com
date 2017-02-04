@@ -17,7 +17,6 @@ class Client extends Game {
     var loginText: TextField;
     var cardText: TextField;
     var connection: Connection;
-    var userField: Field;
 
     public function new() {
         super();
@@ -40,13 +39,18 @@ class Client extends Game {
     }
 
     function loginState() {
-        var loginButton = new Button(g,g.login,'login/login');
+        passOverlay = 'login/pass.png'.sprite();
+        passOverlay.visible = false;
+        passOverlay.addEventListener(MouseEvent.MOUSE_DOWN, function(_) resetToUserState());
+        g.login.addChild(passOverlay);
 
+        loginButton = new Button(g,g.login,'login/login');
         loginButton.x = loginButton.width.center(Consts.WIDTH/2);
         loginButton.y = loginButton.height.center(Consts.HEIGHT/2);
-        loginButton.onPop(connect);
+        loginButton.onPop(passStage);
 
         userField = new Field(g,Consts.WIDTH/2,loginButton.y/2);
+        g.login.addChild(userField);
 
         var rows = ['1234567890','QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];
         var keysX=400.center(Consts.WIDTH/2).int();
@@ -63,8 +67,7 @@ class Client extends Game {
                 var keyButton = new Button(g,g.login,'keys/blank');
                 keyButton.x = k*33+xOff;
                 keyButton.y = r*55+keysY;
-                var keyText = rows[r].charAt(k).text(20,15,18);
-                keyButton.addChild(keyText);
+                keyButton.addChild(rows[r].charAt(k).text(19,17,18));
                 keyButton.onPop(function()
                     userField.setText(userField.getText() + rows[r].charAt(k))
                 );
@@ -73,23 +76,51 @@ class Client extends Game {
             }
         }
 
-        var undoButton = new Button(g,g.login,'key_undo/blank');
+        undoButton = new Button(g,g.login,'key_undo/blank');
         undoButton.x=keysX+330;
         undoButton.y=keysY;
-        var undoText = 'Undo'.text(35,15,18);
-        undoButton.addChild(undoText);
-        undoButton.onPop(function()
-            userField.setText(userField.getText().substr(0,g.user.length-1))
-        );
+        undoButton.addChild('Undo'.text(35,15,18));
 
-        g.login.addChild(userField);
-        g.login.addChild(loginButton);
+        undoButton.onPop(function() {
+            if (userField.size() > 0)
+                userField.setText(userField.getText().substr(0,userField.size()-1));
+            else resetToUserState();
+        });
+
         g.login.addChild(undoButton);
+        g.login.addChild(loginButton);
         addChild(g.login);
     }
 
+    var loginButton: Button;
+    var userField: Field;
+    var undoButton: Button;
+    var passOverlay: Sprite;
+
+    function resetToUserState() {
+        // reset to username step
+        loginButton.onPop(passStage);
+        g.user = '';
+        userField.setText('');
+        userField.password(false);
+        passOverlay.visible = false;
+    }
+
+    function passStage() {
+        // save username and clear for password
+        g.user = userField.getText();
+        trace('g.user=${g.user}');
+        userField.password(true);
+        userField.setText('');
+
+        loginButton.onPop(connect);
+
+        passOverlay.visible = true;
+    }
+
     function connect() {
-        connection = g.connect(g.user=userField.getText(),'Richard');
+        trace('connect');
+        connection = g.connect(g.user,userField.getText());
         addChild(connection);
     }
 

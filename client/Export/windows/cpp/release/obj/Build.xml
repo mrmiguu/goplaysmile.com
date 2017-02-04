@@ -1,5 +1,5 @@
 <xml>
-<set name="HXCPP_API_LEVEL" value="331" />
+<set name="HXCPP_API_LEVEL" value="330" />
 <files id="haxe">
 <compilerflag value="-Iinclude"/>
   <file name="src/sys/net/Socket.cpp" >
@@ -211,6 +211,7 @@
    <depend name="include/openfl/_internal/renderer/cairo/CairoTextField.h"/>
    <depend name="include/openfl/_internal/swf/SWFLite.h"/>
    <depend name="include/openfl/_internal/symbols/DynamicTextSymbol.h"/>
+   <depend name="include/openfl/_internal/symbols/FontSymbol.h"/>
    <depend name="include/openfl/_internal/symbols/SWFSymbol.h"/>
    <depend name="include/openfl/_internal/text/TextEngine.h"/>
    <depend name="include/openfl/_internal/text/TextFormatRange.h"/>
@@ -1048,7 +1049,6 @@
   <file name="src/openfl/display/Stage.cpp" tags="haxe,release">
    <depend name="include/Std.h"/>
    <depend name="include/StringTools.h"/>
-   <depend name="include/Type.h"/>
    <depend name="include/haxe/IMap.h"/>
    <depend name="include/haxe/ds/IntMap.h"/>
    <depend name="include/haxe/ds/StringMap.h"/>
@@ -1129,6 +1129,7 @@
   </file>
   <file name="src/openfl/display/SimpleButton.cpp" >
    <depend name="include/lime/app/IModule.h"/>
+   <depend name="include/lime/graphics/CanvasRenderContext.h"/>
    <depend name="include/lime/ui/MouseCursor.h"/>
    <depend name="include/openfl/_Vector/IVector.h"/>
    <depend name="include/openfl/_Vector/ObjectVector.h"/>
@@ -1434,7 +1435,6 @@
   </file>
   <file name="src/openfl/display/Graphics.cpp" tags="haxe,release">
    <depend name="include/Std.h"/>
-   <depend name="include/Type.h"/>
    <depend name="include/lime/graphics/cairo/Cairo.h"/>
    <depend name="include/openfl/Lib.h"/>
    <depend name="include/openfl/_Vector/FloatVector.h"/>
@@ -1554,6 +1554,7 @@
   </file>
   <file name="src/openfl/display/Bitmap.cpp" tags="haxe,release">
    <depend name="include/lime/_backend/native/NativeGLRenderContext.h"/>
+   <depend name="include/lime/graphics/CanvasRenderContext.h"/>
    <depend name="include/lime/graphics/cairo/Cairo.h"/>
    <depend name="include/lime/graphics/cairo/_CairoPattern/CairoPattern_Impl_.h"/>
    <depend name="include/lime/graphics/opengl/GLBuffer.h"/>
@@ -1670,7 +1671,6 @@
    <depend name="include/openfl/_internal/symbols/StaticTextRecord.h"/>
   </file>
   <file name="src/openfl/_internal/symbols/StaticTextSymbol.cpp" >
-   <depend name="include/Type.h"/>
    <depend name="include/haxe/IMap.h"/>
    <depend name="include/haxe/ds/IntMap.h"/>
    <depend name="include/openfl/_internal/swf/SWFLite.h"/>
@@ -1703,7 +1703,6 @@
    <depend name="include/openfl/events/IEventDispatcher.h"/>
   </file>
   <file name="src/openfl/_internal/symbols/ShapeSymbol.cpp" >
-   <depend name="include/Type.h"/>
    <depend name="include/haxe/IMap.h"/>
    <depend name="include/haxe/ds/IntMap.h"/>
    <depend name="include/lime/graphics/Image.h"/>
@@ -1880,7 +1879,6 @@
   <file name="src/openfl/_internal/stage3D/RegisterMap.cpp" >
    <depend name="include/Std.h"/>
    <depend name="include/StringBuf.h"/>
-   <depend name="include/Type.h"/>
    <depend name="include/haxe/Log.h"/>
    <depend name="include/openfl/_internal/stage3D/AGALConverter.h"/>
    <depend name="include/openfl/_internal/stage3D/RegisterMap.h"/>
@@ -2280,6 +2278,7 @@
   <file name="src/openfl/_internal/renderer/canvas/CanvasRenderer.cpp" >
    <depend name="include/lime/app/IModule.h"/>
    <depend name="include/lime/graphics/CanvasRenderContext.h"/>
+   <depend name="include/lime/ui/Window.h"/>
    <depend name="include/openfl/_Vector/IVector.h"/>
    <depend name="include/openfl/_Vector/ObjectVector.h"/>
    <depend name="include/openfl/_internal/renderer/AbstractMaskManager.h"/>
@@ -2297,6 +2296,7 @@
    <depend name="include/openfl/events/IEventDispatcher.h"/>
   </file>
   <file name="src/openfl/_internal/renderer/canvas/CanvasMaskManager.cpp" >
+   <depend name="include/lime/graphics/CanvasRenderContext.h"/>
    <depend name="include/openfl/_internal/renderer/AbstractMaskManager.h"/>
    <depend name="include/openfl/_internal/renderer/RenderSession.h"/>
    <depend name="include/openfl/_internal/renderer/canvas/CanvasMaskManager.h"/>
@@ -2435,7 +2435,6 @@
   </file>
   <file name="src/openfl/_internal/renderer/cairo/CairoGraphics.cpp" >
    <depend name="include/Std.h"/>
-   <depend name="include/Type.h"/>
    <depend name="include/lime/graphics/Image.h"/>
    <depend name="include/lime/graphics/cairo/Cairo.h"/>
    <depend name="include/lime/graphics/cairo/_CairoImageSurface/CairoImageSurface_Impl_.h"/>
@@ -2605,13 +2604,11 @@
    <depend name="include/openfl/geom/Matrix.h"/>
   </file>
   <file name="src/openfl/_internal/renderer/DrawCommandReader.cpp" tags="haxe,release">
-   <depend name="include/Type.h"/>
    <depend name="include/openfl/_internal/renderer/DrawCommandBuffer.h"/>
    <depend name="include/openfl/_internal/renderer/DrawCommandReader.h"/>
    <depend name="include/openfl/_internal/renderer/DrawCommandType.h"/>
   </file>
   <file name="src/openfl/_internal/renderer/DrawCommandBuffer.cpp" tags="haxe,release">
-   <depend name="include/Type.h"/>
    <depend name="include/openfl/_Vector/FloatVector.h"/>
    <depend name="include/openfl/_Vector/IVector.h"/>
    <depend name="include/openfl/_Vector/IntVector.h"/>
@@ -3107,7 +3104,6 @@
    <depend name="include/lime/system/_ThreadPool/ThreadPoolMessageType.h"/>
   </file>
   <file name="src/lime/system/ThreadPool.cpp" tags="haxe,release">
-   <depend name="include/Type.h"/>
    <depend name="include/cpp/vm/Deque.h"/>
    <depend name="include/cpp/vm/Thread.h"/>
    <depend name="include/lime/app/Application.h"/>
@@ -3310,7 +3306,6 @@
    <depend name="include/lime/media/AudioSource.h"/>
   </file>
   <file name="src/lime/media/AudioManager.cpp" tags="haxe,release">
-   <depend name="include/Type.h"/>
    <depend name="include/lime/media/ALAudioContext.h"/>
    <depend name="include/lime/media/ALCAudioContext.h"/>
    <depend name="include/lime/media/AudioContext.h"/>
@@ -3410,7 +3405,6 @@
   </file>
   <file name="src/lime/graphics/utils/ImageDataUtil.cpp" tags="haxe,release">
    <depend name="include/Std.h"/>
-   <depend name="include/Type.h"/>
    <depend name="include/haxe/io/Bytes.h"/>
    <depend name="include/lime/_backend/native/NativeCFFI.h"/>
    <depend name="include/lime/graphics/Image.h"/>
@@ -3509,7 +3503,6 @@
    <depend name="include/lime/graphics/format/BMPType.h"/>
   </file>
   <file name="src/lime/graphics/format/BMP.cpp" tags="haxe,release">
-   <depend name="include/Type.h"/>
    <depend name="include/haxe/io/Bytes.h"/>
    <depend name="include/lime/graphics/Image.h"/>
    <depend name="include/lime/graphics/format/BMP.h"/>
@@ -3610,7 +3603,6 @@
   </file>
   <file name="src/lime/graphics/Image.cpp" tags="haxe,release">
    <depend name="include/Std.h"/>
-   <depend name="include/Type.h"/>
    <depend name="include/haxe/crypto/BaseCode.h"/>
    <depend name="include/haxe/io/Bytes.h"/>
    <depend name="include/lime/_backend/native/NativeCFFI.h"/>
@@ -3941,7 +3933,6 @@
    <depend name="include/lime/utils/TAError.h"/>
   </file>
   <file name="src/lime/_backend/native/NativeMouse.cpp" tags="haxe,release">
-   <depend name="include/Type.h"/>
    <depend name="include/lime/_backend/native/NativeCFFI.h"/>
    <depend name="include/lime/_backend/native/NativeMouse.h"/>
    <depend name="include/lime/_backend/native/NativeWindow.h"/>
@@ -4104,14 +4095,9 @@
    <depend name="include/haxe/io/Output.h"/>
   </file>
   <file name="src/haxe/io/Input.cpp" >
-   <depend name="include/haxe/io/Bytes.h"/>
-   <depend name="include/haxe/io/BytesBuffer.h"/>
+   <depend name="include/StringBuf.h"/>
    <depend name="include/haxe/io/Eof.h"/>
    <depend name="include/haxe/io/Input.h"/>
-  </file>
-  <file name="src/haxe/io/BytesBuffer.cpp" >
-   <depend name="include/haxe/io/Bytes.h"/>
-   <depend name="include/haxe/io/BytesBuffer.h"/>
   </file>
   <file name="src/haxe/io/Bytes.cpp" tags="haxe,release">
    <depend name="include/StringBuf.h"/>
@@ -4233,7 +4219,6 @@
   <file name="src/haxe/CallStack.cpp" >
    <depend name="include/Std.h"/>
    <depend name="include/StringBuf.h"/>
-   <depend name="include/Type.h"/>
    <depend name="include/haxe/CallStack.h"/>
    <depend name="include/haxe/StackItem.h"/>
   </file>
@@ -4454,6 +4439,7 @@
    <depend name="include/Field.h"/>
    <depend name="include/Globals.h"/>
    <depend name="include/Std.h"/>
+   <depend name="include/haxe/Log.h"/>
    <depend name="include/lime/text/Font.h"/>
    <depend name="include/openfl/Assets.h"/>
    <depend name="include/openfl/display/BitmapData.h"/>
@@ -4747,6 +4733,7 @@
    <depend name="include/Std.h"/>
    <depend name="include/Terrain.h"/>
    <depend name="include/Viewport.h"/>
+   <depend name="include/haxe/Log.h"/>
    <depend name="include/haxe/crypto/Md5.h"/>
    <depend name="include/lime/app/IModule.h"/>
    <depend name="include/lime/text/Font.h"/>
@@ -4806,12 +4793,14 @@
   </file>
   <file name="src/openfl/display/DisplayObjectContainer.cpp" tags="haxe,release">
    <depend name="include/lime/app/IModule.h"/>
+   <depend name="include/lime/graphics/CanvasRenderContext.h"/>
    <depend name="include/openfl/_Vector/IVector.h"/>
    <depend name="include/openfl/_Vector/ObjectVector.h"/>
    <depend name="include/openfl/_internal/renderer/AbstractFilterManager.h"/>
    <depend name="include/openfl/_internal/renderer/AbstractMaskManager.h"/>
    <depend name="include/openfl/_internal/renderer/RenderSession.h"/>
    <depend name="include/openfl/_internal/renderer/cairo/CairoGraphics.h"/>
+   <depend name="include/openfl/_internal/renderer/canvas/CanvasGraphics.h"/>
    <depend name="include/openfl/display/DisplayObject.h"/>
    <depend name="include/openfl/display/DisplayObjectContainer.h"/>
    <depend name="include/openfl/display/Graphics.h"/>
@@ -4860,6 +4849,7 @@
    <depend name="include/openfl/_internal/renderer/RenderSession.h"/>
    <depend name="include/openfl/_internal/renderer/cairo/CairoDisplayObject.h"/>
    <depend name="include/openfl/_internal/renderer/cairo/CairoGraphics.h"/>
+   <depend name="include/openfl/_internal/renderer/canvas/CanvasGraphics.h"/>
    <depend name="include/openfl/_internal/renderer/opengl/GLRenderer.h"/>
    <depend name="include/openfl/display/BitmapData.h"/>
    <depend name="include/openfl/display/DisplayObject.h"/>

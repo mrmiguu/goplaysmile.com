@@ -52,8 +52,8 @@ class Player {
     }
 
     public function save() {
-        'accounts/${user}'.saveContent('
-            ${pass}'
+        'accounts/$user'.saveContent('
+            $pass:$exp:$level'
         );
     }
 
@@ -191,6 +191,7 @@ class Player {
         trace('increaseExp');
         req = (1.1.pow(level) + 1.95).int() * level;
         exp = (exp + 1) % req;
+
 
         // check for level-up
         if (exp == 0) level++;

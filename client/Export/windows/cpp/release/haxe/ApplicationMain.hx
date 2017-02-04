@@ -28,7 +28,7 @@ import DefaultAssetLibrary;
 		
 		config = {
 			
-			build: "70",
+			build: "97",
 			company: "",
 			file: "GPS",
 			fps: 61,

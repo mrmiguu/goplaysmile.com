@@ -14,10 +14,9 @@ using sys.net.Socket;
 
 class Server extends Sprite {
     var g = new Globals();
-    var clientCount = ''.text(Consts.WIDTH/2, Consts.HEIGHT/2, 18);
+    var clientCount: Field;
     var listener = new Socket();
     var readers: Sockets = [];
-    // var writers: Sockets = [];
 
     public function new() {
         super();
@@ -26,16 +25,12 @@ class Server extends Sprite {
 
         addChild('etc/bg.png'.sprite());
 
-        var card = 'etc/card.png'.sprite();
-        card.y = card.height.center(Consts.HEIGHT/2);
-        addChild(card);
-
+        clientCount = new Field(g,Consts.WIDTH/2,Consts.HEIGHT/2);
         updateCount();
         addChild(clientCount);
 
-        // listener.setFastSend(true);
         listener.setBlocking(false);
-        listener.bind(new Host('192.168.1.173'), 4200);
+        listener.bind(new Host('192.168.1.152'), 4200);
         listener.listen(100);
         readers.push(listener);
 
@@ -58,7 +53,7 @@ class Server extends Sprite {
     }
 
     function updateCount() {
-        clientCount.text = '${g.sockets.length}';
+        clientCount.setText('${g.sockets.length}');
     }
 
     function read(index: Socket, packet: String) {

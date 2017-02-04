@@ -28,7 +28,7 @@ import DefaultAssetLibrary;
 		
 		config = {
 			
-			build: "6",
+			build: "13",
 			company: "",
 			file: "GPS",
 			fps: 61,
@@ -47,7 +47,7 @@ import DefaultAssetLibrary;
 					display: 0,
 					fullscreen: false,
 					hardware: true,
-					height: 240,
+					height: 480,
 					hidden: #if munit true #else null #end,
 					maximized: null,
 					minimized: null,
@@ -56,7 +56,7 @@ import DefaultAssetLibrary;
 					stencilBuffer: true,
 					title: "Go Play Smile",
 					vsync: false,
-					width: 400,
+					width: 800,
 					x: null,
 					y: null
 				},
@@ -74,7 +74,7 @@ import DefaultAssetLibrary;
 		
 		#if (js && html5)
 		#if (munit || utest)
-		embed (null, 400, 240, "null");
+		embed (null, 800, 480, "null");
 		#end
 		#else
 		create ();

@@ -55,9 +55,8 @@ class Consts {
         return serial.unserialize().string();
     }
 
-    public static inline function text(s: String, x: Float, y: Float, pt: Int) {
+    public static inline function text(s: String, x: Float, y: Float, pt: Int, c=FONT_COLOR) {
         var t = new TextField();
-        t.embedFonts = true;
         t.text = s;
         t.x = x - t.width/2;
         t.y = y;
@@ -67,9 +66,11 @@ class Consts {
         t.setTextFormat(new TextFormat(
             'assets/etc/lucon.ttf'.getFont().fontName,
             pt,
-            Consts.FONT_COLOR,
+            c,
             true
         ));
+
+        t.embedFonts = true;
 
         return t;
     }

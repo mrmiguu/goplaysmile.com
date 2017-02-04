@@ -57,6 +57,7 @@ import sys.FileSystem;
 		id = "assets/etc/bg.png";useManifest = true;
 		id = "assets/etc/bgm.ogg";useManifest = true;
 		id = "assets/etc/card.png";useManifest = true;
+		id = "assets/etc/err.ogg";useManifest = true;
 		id = "assets/etc/info.png";useManifest = true;
 		id = "assets/etc/lucon.ttf";
 		classTypes.set (id, __ASSET__assets_etc_lucon_ttf);
@@ -67,6 +68,9 @@ import sys.FileSystem;
 		id = "assets/etc/pop.ogg";useManifest = true;
 		id = "assets/etc/push.ogg";useManifest = true;
 		id = "assets/etc/slide.ogg";useManifest = true;
+		id = "assets/field/l.png";useManifest = true;
+		id = "assets/field/m.png";useManifest = true;
+		id = "assets/field/r.png";useManifest = true;
 		
 		
 		if (useManifest) {
@@ -166,6 +170,10 @@ import sys.FileSystem;
 
 #if !display
 #if flash
+
+
+
+
 
 
 

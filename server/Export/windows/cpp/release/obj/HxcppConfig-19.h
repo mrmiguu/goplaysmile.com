@@ -14,7 +14,7 @@
 #endif
 
 #if !defined(HXCPP_API_LEVEL) && !defined(NO_HXCPP_API_LEVEL)
-#define HXCPP_API_LEVEL 331
+#define HXCPP_API_LEVEL 330
 #endif
 
 #if !defined(_CRT_SECURE_NO_DEPRECATE) && !defined(NO__CRT_SECURE_NO_DEPRECATE)

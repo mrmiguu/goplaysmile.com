@@ -7,27 +7,26 @@ using Consts;
 
 class Field extends Sprite {
     var g: Globals;
-    var cenx: Float;
-    var ceny: Float;
     var l: Sprite;
     var ms: Array<Sprite>;
     var r: Sprite;
     var f: TextField;
     var tW=44;
     var tE=35;
+    public var length = 0;
 
-    public function new(g: Globals, x: Float, y: Float) {
+    public function new(g: Globals, x: Float, y: Float, pw=false) {
         super();
 
         this.g = g;
-        cenx = x;
-        ceny = y;
-        f = ''.text(x,y,72,0xFFFFFF);
+        f = ''.text(x,y-32,72,0xFFFFFF);
         l = 'field/l.png'.sprite();
         ms = [for (i in 0...19) 'field/m.png'.sprite()];
         r = 'field/r.png'.sprite();
 
-        l.y = y-13;
+        f.displayAsPassword=pw;
+
+        l.y = y - l.height/2; // center
         addChild(l);
         
         for (m in ms) {
@@ -40,6 +39,14 @@ class Field extends Sprite {
         addChild(f);
 
         setText('');
+    }
+
+    public function size() {
+        return f.text.length;
+    }
+
+    public function password(tf: Bool) {
+        f.displayAsPassword=tf;
     }
 
     public function getText() {
@@ -91,5 +98,6 @@ class Field extends Sprite {
         }
 
         f.text=t20;
+        trace('field=${f.text}');
     }
 }

@@ -9,6 +9,7 @@ class Globals {
     public var out = [];
     public var players = new Map<Socket, Player>();
     public var sockets = [];
+    var err = 'etc/err.ogg'.sound();
 
     // first card
     public var c1 = new Card('c1',
@@ -22,6 +23,10 @@ class Globals {
 
     public function player(s: Socket) {
         return players[s];
+    }
+
+    public function errSfx() {
+        err.play();
     }
 
     public function new() {}

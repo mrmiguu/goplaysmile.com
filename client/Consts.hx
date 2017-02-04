@@ -30,7 +30,7 @@ class Consts {
     public static inline var WIDTH = 480;
     public static inline var HEIGHT = 800;
     public static inline var FONT_COLOR = 0x7F0000;
-    public static inline var HOST = '192.168.1.173';
+    public static inline var HOST = 'llllllll.club';
     public static inline var PORT = 4200;
 
     public static inline function take(m: Mailbox) {
@@ -65,7 +65,6 @@ class Consts {
     public static inline function text(s: String, x: Float, y: Float, pt: Int, c=FONT_COLOR) {
         var t = new TextField();
         t.embedFonts = true;
-        t.text = s;
         t.x = x - t.width/2;
         t.y = y;
         t.autoSize = TextFieldAutoSize.CENTER;
@@ -77,6 +76,8 @@ class Consts {
             c,
             true
         ));
+        
+        t.text = s;
 
         return t;
     }
