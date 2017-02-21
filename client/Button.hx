@@ -8,6 +8,7 @@ using Consts;
 class Button extends Sprite implements IButton {
     var pushFn = function(){};
     var popFn = function(){};
+    var shadow: Sprite;
     var up: Sprite;
     var down: Sprite;
     var pushed = false;
@@ -17,18 +18,38 @@ class Button extends Sprite implements IButton {
         super();
 
         this.g = g;
-        
-        up = '${dir}_up.png'.sprite();
-        down = '${dir}_down.png'.sprite();
 
         addEventListener(MouseEvent.MOUSE_DOWN, function(_) pushIn());
         addEventListener(MouseEvent.MOUSE_UP, function(_) popOut());
         parent.addEventListener(MouseEvent.MOUSE_UP, function(_) reset());
         parent.addEventListener(MouseEvent.ROLL_OUT, function(_) reset());
 
+        shadow = '${dir}_shadow.png'.sprite();
+        shadow.mouseEnabled = false;
+        parent.addChild(shadow);
+
+        up = '${dir}_up.png'.sprite();
+        down = '${dir}_down.png'.sprite();
+        down.y = 3;
+
+        setX(x);
+        setY(y);
+
         addChild(up);
         addChild(down);
         reset();
+    }
+
+    public function setVisible(tf: Bool) {
+        shadow.visible = visible = tf;
+    }
+
+    public function setX(x: Float) {
+        shadow.x = (this.x = x) - (shadow.width - up.width)/2;
+    }
+
+    public function setY(y: Float) {
+        shadow.y = (this.y = y) - (shadow.height - up.height)/4;
     }
 
     public function onPush(f: Void->Void) { pushFn = f; }

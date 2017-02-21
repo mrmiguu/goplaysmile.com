@@ -18,7 +18,6 @@ class Player {
     var card: Card;
     var cards = [];
     var level = 1;
-    var req: Int;
     var exp: Int;
     var socket: Socket;
     var side: Int;
@@ -35,7 +34,12 @@ class Player {
         socket = s;
 
         'accounts'.createDirectory();
-        save();
+        if (account().exists()) load();
+        else save();
+    }
+
+    function account() {
+        return 'accounts/$user@$pass';
     }
 
     public function onGoal() { return cur == path.length-1; }
@@ -51,15 +55,23 @@ class Player {
         if (cards.indexOf(c) != -1) card = c;
     }
 
+    public function load() {
+        var serial = account().getContent().serial();
+        exp = serial.next();
+        level = serial.next();
+        sendExp();
+    }
+
     public function save() {
-        'accounts/$user'.saveContent('
-            $pass:$exp:$level'
-        );
+        account().saveContent([
+            exp,
+            level
+        ].serialize());
     }
 
     public function init() {
         trace('init');
-        setColor(roygbiv.charAt(user.length%7));
+        // setColor(roygbiv.charAt(user.length%7));
         reset();
         g.out.addLetter(socket,['init']);
         trace('addLetter(socket,[\'init\'])');
@@ -107,7 +119,7 @@ class Player {
         return color;
     }
 
-    function setColor(c: String) {
+    public function setColor(c: String) {
         trace('$user.color <- $c');
         color = c;
         broadcastColor();
@@ -187,16 +199,24 @@ class Player {
         broadcastLoc();
     }
 
+    function sendExp() {
+        g.out.addLetter(socket,['exp',req(),exp,level]);
+    }
+
+    function req() {
+        return (1.1.pow(level) + 1.95).int() * level;
+    }
+
     function increaseExp() {
         trace('increaseExp');
-        req = (1.1.pow(level) + 1.95).int() * level;
-        exp = (exp + 1) % req;
 
+        exp = (exp + 1) % req();
 
         // check for level-up
         if (exp == 0) level++;
 
-        g.out.addLetter(socket, ['exp',req,exp,level]);
+        save();
+        sendExp();
     }
 
     public function rollDie() {

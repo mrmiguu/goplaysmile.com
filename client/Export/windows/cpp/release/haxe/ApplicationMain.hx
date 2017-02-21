@@ -28,7 +28,7 @@ import DefaultAssetLibrary;
 		
 		config = {
 			
-			build: "97",
+			build: "108",
 			company: "",
 			file: "GPS",
 			fps: 61,
@@ -64,7 +64,7 @@ import DefaultAssetLibrary;
 			
 		};
 		
-		#if hxtelemetry
+		#if (hxtelemetry && !macro)
 		var telemetry = new hxtelemetry.HxTelemetry.Config ();
 		telemetry.allocations = true;
 		telemetry.host = "localhost";

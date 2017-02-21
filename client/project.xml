@@ -5,6 +5,7 @@
 	<app main="Client" path="Export" file="GPS" />
 	
 	<window width="480" height="800" fps="61" resizable="false" />
+
     <haxelib name="extension-iap" />
 	<haxelib name="openfl" />
 	<icon path="assets/etc/app.png" />

@@ -7,16 +7,18 @@ using Std;
 
 class Globals {
     public var login = new Game();
+    public var carPick = new Game();
     public var toFrom = new Game();
     public var inGame = new Game();
     public var radio: Radio;
-    public var outbox: Mailbox;
+    public var out = [];
     public var roll: Int->Void;
     public var t: Terrain;
     public var v: Viewport;
     public var toFromText: TextField;
     public var l: Level;
     public var user = '';
+    public var carRoulette: Animatible;
     var err = 'etc/err.ogg'.sound();
     var pushes = [for (n in 0...3) 'etc/push${n}.ogg'.sound()];
     var pops = [for (n in 0...3) 'etc/pop${n}.ogg'.sound()];

@@ -43,6 +43,15 @@ class Consts {
         m.push({sender: s, body: serial.toString()});
     }
 
+    public static inline function serialize(t: Tokens) {
+        var serial = new Serializer();
+
+        for (token in t)
+            serial.serialize(token);
+
+        return serial.toString();
+    }
+
     public static inline function serial(packet: String) {
         return new Unserializer(packet);
     }

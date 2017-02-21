@@ -14,13 +14,11 @@ class Connection extends Sprite implements IButton {
     var server = new Socket();
     var readers: Sockets = [];
     var writers: Sockets = [];
-    var outbox: Mailbox = [];
 
     public function new(g: Globals, host: String, port: Int, user: String, pass: String) {
         super();
 
         this.g = g;
-        g.outbox = outbox;
 
         server.setFastSend(true);
         server.setBlocking(false);
@@ -31,7 +29,7 @@ class Connection extends Sprite implements IButton {
 
         addEventListener(Event.ENTER_FRAME,clientLoop);
 
-        outbox.addLetter(['login',user,pass]);
+        g.out.addLetter(['login',user,pass]);
     }
 
     public function pushIn() {
@@ -87,13 +85,16 @@ class Connection extends Sprite implements IButton {
     function initArrived() {
         trace('initArrived');
         // switch to the logged-in screen
-        g.radio.push(g.toFrom);
-        g.t.reset();
+        g.carRoulette.animating = true;
+        g.radio.push(g.carPick);
     }
 
     function playerColorArrived(user: String, color: String) {
         trace('playerColorArrived');
         g.player(user).setColor(color);
+        g.radio.push(g.toFrom);
+        g.carRoulette.animating = false;
+        g.t.reset();
     }
 
     function dieInfoArrived(side: Int) {
@@ -140,7 +141,7 @@ class Connection extends Sprite implements IButton {
             catch (e: Dynamic) {}
 
         if (sockets.write.length > 0)
-            if (outbox.length > 0)
-                server.output.writeString('${outbox.take()}\r\n');
+            if (g.out.length > 0)
+                server.output.writeString('${g.out.take()}\r\n');
     }
 }

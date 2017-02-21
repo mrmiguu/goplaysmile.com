@@ -1,6 +1,6 @@
 HXCPP_CHECK_POINTER=1
 HXCPP_STACK_LINE=1
 HXCPP_STACK_TRACE=1
-hxcpp_api_level=330
+hxcpp_api_level=331
 no_console=1
-hxcpp=C:\HaxeToolkit\haxe\lib\hxcpp/3,4,43/
+hxcpp=C:\HaxeToolkit\haxe\lib\hxcpp/3,4,49/

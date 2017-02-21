@@ -66,6 +66,11 @@ class Server extends Sprite {
                     serial.next() // password md5 hash
                 );
 
+            case 'color':
+                colorRequestArrived(index,
+                    serial.nextString() // color
+                );
+
             case 'roll':
                 rollRequestArrived(index);
         }
@@ -76,6 +81,11 @@ class Server extends Sprite {
         var player = g.players[index] = new Player(g, user, pass, index);
         player.addCard(g.c1);
         player.init(); // pass around their to-from
+    }
+
+    function colorRequestArrived(index: Socket, color: String) {
+        trace('colorRequestArrived');
+        g.player(index).setColor(color);
     }
 
     function rollRequestArrived(index: Socket) {

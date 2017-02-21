@@ -20,7 +20,6 @@ class Game extends Sprite implements IButton {
         visible = false;
     }
 
-
     public function addAnimation(a: Animatible) {
         animatibles.push(a);
     }

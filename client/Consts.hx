@@ -17,7 +17,6 @@ import sys.net.Socket;
 
 using Math;
 using Std;
-using haxe.crypto.Md5;
 using openfl.Assets;
 using openfl.media.Sound;
 
@@ -46,8 +45,17 @@ class Consts {
         m.push(serial.toString());
     }
 
+    public static inline function serialize(t: Tokens) {
+        var serial = new Serializer();
+
+        for (token in t)
+            serial.serialize(token);
+
+        return serial.toString();
+    }
+
     public static inline function connect(g: Globals, user: String, pass: String) {
-        return new Connection(g, HOST, PORT, user, pass.encode());
+        return new Connection(g, HOST, PORT, user, pass);
     }
 
     public static inline function serial(packet: String) {

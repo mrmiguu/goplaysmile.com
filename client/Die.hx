@@ -28,7 +28,7 @@ class Die extends SpriteSheet {
 
         addEventListener(MouseEvent.CLICK, function(e) {
             if (!rollSent) {
-                g.outbox.addLetter(['roll']);
+                g.out.addLetter(['roll']);
                 rollSent = true;
             }
         });

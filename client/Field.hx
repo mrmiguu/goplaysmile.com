@@ -4,6 +4,9 @@ import openfl.display.Sprite;
 import openfl.text.TextField;
 
 using Consts;
+using haxe.crypto.Md5;
+using sys.io.File;
+using sys.FileSystem;
 
 class Field extends Sprite {
     var g: Globals;
@@ -13,9 +16,11 @@ class Field extends Sprite {
     var f: TextField;
     var tW=44;
     var tE=35;
-    public var length = 0;
+    var cacheLoaded: Bool;
+    var cacheFile: String;
+    var passCache = '';
 
-    public function new(g: Globals, x: Float, y: Float, pw=false) {
+    public function new(g: Globals, x: Float, y: Float, cacheFile='', pw=false) {
         super();
 
         this.g = g;
@@ -23,8 +28,6 @@ class Field extends Sprite {
         l = 'field/l.png'.sprite();
         ms = [for (i in 0...19) 'field/m.png'.sprite()];
         r = 'field/r.png'.sprite();
-
-        f.displayAsPassword=pw;
 
         l.y = y - l.height/2; // center
         addChild(l);
@@ -38,29 +41,130 @@ class Field extends Sprite {
         addChild(r);
         addChild(f);
 
-        setText('');
+        this.cacheFile = cacheFile;
+        if (pw) hide() else reload();
+    }
+
+    function localSave() {
+        if (cacheFile.length == 0 || f.text.length == 0) return;
+
+        var reg = '_';
+        var len = 0;
+        var pwd = '_';
+
+        if (cacheFile.exists()) {
+            var serial = cacheFile.getContent().serial();
+            reg = serial.nextString();
+            len = serial.next();
+            pwd = serial.nextString();
+        }
+
+        cacheFile.saveContent(Consts.serialize(
+            if (f.displayAsPassword && cacheLoaded) [reg,f.text.length,passCache]
+            else if (f.displayAsPassword) [reg,size(),f.text.encode()]
+            else [f.text,len,pwd]
+        ));
+    }
+
+    public function cached() {
+        return cacheLoaded;
     }
 
     public function size() {
         return f.text.length;
     }
 
-    public function password(tf: Bool) {
-        f.displayAsPassword=tf;
+    public function hide() {
+        f.displayAsPassword=true;
+        reload();
+    }
+
+    public function show() {
+        f.displayAsPassword=false;
+        reload();
+    }
+
+    public function reload() {
+        // check to see if reading cache is possible
+        if (cacheFile.length > 0 && cacheFile.exists()) {
+            var serial = cacheFile.getContent().serial();
+            var reg = serial.nextString();
+
+            if (f.displayAsPassword) {
+                var buf = '';
+                for (L in 0...serial.next()) buf+='_';
+                passCache = serial.nextString(); // real md5
+                setText(buf); // phony, same-length password
+            } else {
+                setText(reg);
+            }
+
+            cacheLoaded = true; // has to be at end!!!
+            // cache isn't loaded until after text is set
+        } else {
+            cacheLoaded = false;
+            setText('');
+        }
+    }
+
+    public function getShownCache() {
+        return if (cacheFile.length == 0 || f.text.length == 0 || !cacheFile.exists()) ''
+            else cacheFile.getContent().serial().nextString();
+    }
+
+    public function resetHiddenCache() {
+        if (cacheFile.length == 0 || f.text.length == 0) return;
+
+        var reg = '_';
+        var len = 0;
+        var pwd = '_';
+
+        if (cacheFile.exists()) {
+            var serial = cacheFile.getContent().serial();
+            reg = serial.nextString();
+        }
+
+        cacheFile.saveContent(Consts.serialize([reg,len,pwd]));
+    }
+
+    public function resetShownCache() {
+        if (cacheFile.length == 0 || f.text.length == 0) return;
+
+        var reg = '_';
+        var len = 0;
+        var pwd = '_';
+
+        if (cacheFile.exists()) {
+            var serial = cacheFile.getContent().serial();
+            len = serial.next();
+            pwd = serial.nextString();
+        }
+
+        cacheFile.saveContent(Consts.serialize([reg,len,pwd]));
     }
 
     public function getText() {
-        return f.text;
+        localSave();
+        return if (cacheLoaded && f.displayAsPassword) passCache
+            else if (f.displayAsPassword && f.text.length > 0) f.text.encode()
+            else f.text;
     }
 
-    /*
-    0
-    1 lr
-    2 lmr
-    3 lmmr
-    */
+    public function undo() {
+        setText(if (size() > 1 && !cacheLoaded) f.text.substr(0,size()-1) else '');
+    }
+
+    public function addText(t: String) {
+        setText(if (cacheLoaded) t else f.text+t);
+    }
+
     public function setText(t: String) {
         var t20 = t;
+
+        // save last state if user-made
+        if (!f.displayAsPassword) passCache = '';
+        
+        cacheLoaded = false;
 
         if (t.length>11) {
             g.errSfx();
@@ -98,6 +202,6 @@ class Field extends Sprite {
         }
 
         f.text=t20;
-        trace('field=${f.text}');
+        trace('field=${if (f.text.charAt(0) == '_') passCache else f.text}');
     }
 }
