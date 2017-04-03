@@ -8,17 +8,14 @@ import openfl.events.Event;
 import openfl.events.MouseEvent;
 import openfl.geom.Rectangle;
 import openfl.media.Sound;
+import openfl.text.TextField;
 
-using Consts;
+using C;
 using Math;
 using Std;
 using openfl.Assets;
 
 class Viewport extends Sprite implements Animatible {
-    public var bC = new Cars();
-    public var lC = new Cars();
-    public var bD = new Dests();
-    public var lD = new Dests();
     public var board: Tile;
     public var zoom: Sprite;
     public var realW: Int;
@@ -46,11 +43,11 @@ class Viewport extends Sprite implements Animatible {
     var right: Float;
     var bottom: Float;
     var world: Sprite;
-    var slide: Sound;
     var mouseHeld: Bool;
     var lastX: Float;
     var lastY: Float;
     var infoCard: Sprite;
+    var infoCardText: TextField;
 
     var w: Int;
     var h: Int;
@@ -61,8 +58,6 @@ class Viewport extends Sprite implements Animatible {
         super();
 
         this.g = g;
-        slide = 'etc/slide.ogg'.sound();
-
         this.x = gps.x + x;
         this.y = gps.y + y;
         this.w = w;
@@ -81,7 +76,10 @@ class Viewport extends Sprite implements Animatible {
         zoom.addEventListener(MouseEvent.DOUBLE_CLICK, doubleClick);
         world.addEventListener(MouseEvent.DOUBLE_CLICK, doubleClick);
 
-        zoom.addEventListener(MouseEvent.CLICK, click);
+        zoom.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownZoom);
+        zoom.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveZoom);
+        zoom.addEventListener(MouseEvent.MOUSE_UP, mouseUpZoom);
+
         addEventListener(MouseEvent.MOUSE_DOWN, function(m) if (zoom.visible) {
             mouseHeld = true;
             animating = false;
@@ -93,48 +91,80 @@ class Viewport extends Sprite implements Animatible {
         infoCard = 'etc/info.png'.sprite();
         infoCard.visible = false;
         infoCard.addEventListener(MouseEvent.CLICK, function(m) {
-            zoom.visible = true;
             infoCard.visible = false;
-            slide.play();
+            g.slideSfx();
         });
+
+        infoCardText = ''.text(infoCard.width/2,infoCard.height/2,18);
+        infoCard.addChild(infoCardText);
         addChild(infoCard);
+
+        paragraphs = C.createParagraphs();
+        for (p in paragraphs.keys()) trace('\"$p\".L=${p.length}');
+    }
+
+    function pointToName(x: Float, y: Float) {
+        var i = 0; // index
+        var dh = 354; // greatest possible hypotenuse
+        var lastI = 0; // best, last index
+
+        for (p in nodePoints) {
+            var ddh = ((p.x-x).pow(2) + (p.y-y).pow(2)).sqrt().int();
+
+            // shorter distance
+            if (ddh < dh) {
+                dh = ddh;
+                lastI = i;
+            }
+
+            i++;
+        }
+
+        return nodeNames[lastI];
     }
 
     function point(id: String) {
         return nodePoints[id.nameToIndex(nodeNames)];
     }
 
-    public function aimRC(loc: String) { aRC = point(loc); }
-    public function aimOC(loc: String) { aOC = point(loc); }
-    public function aimYC(loc: String) { aYC = point(loc); }
-    public function aimGC(loc: String) { aGC = point(loc); }
-    public function aimBC(loc: String) { aBC = point(loc); }
-    public function aimIC(loc: String) { aIC = point(loc); }
-    public function aimVC(loc: String) { aVC = point(loc); }
+    public function aimC(color: String, loc: String) { aC[color] = point(loc); }
 
-    public function aimRD(dest: String) { aRD = point(dest); }
-    public function aimOD(dest: String) { aOD = point(dest); }
-    public function aimYD(dest: String) { aYD = point(dest); }
-    public function aimGD(dest: String) { aGD = point(dest); }
-    public function aimBD(dest: String) { aBD = point(dest); }
-    public function aimID(dest: String) { aID = point(dest); }
-    public function aimVD(dest: String) { aVD = point(dest); }
+    // public function aimRC(loc: String) { aRC = point(loc); }
+    // public function aimOC(loc: String) { aOC = point(loc); }
+    // public function aimYC(loc: String) { aYC = point(loc); }
+    // public function aimGC(loc: String) { aGC = point(loc); }
+    // public function aimBC(loc: String) { aBC = point(loc); }
+    // public function aimIC(loc: String) { aIC = point(loc); }
+    // public function aimVC(loc: String) { aVC = point(loc); }
 
-    var aRC: Pt = {x:0,y:0};
-    var aOC: Pt = {x:0,y:0};
-    var aYC: Pt = {x:0,y:0};
-    var aGC: Pt = {x:0,y:0};
-    var aBC: Pt = {x:0,y:0};
-    var aIC: Pt = {x:0,y:0};
-    var aVC: Pt = {x:0,y:0};
+    public function aimD(color: String, dest: String) { aD[color] = point(dest); }
 
-    var aRD: Pt = {x:0,y:0};
-    var aOD: Pt = {x:0,y:0};
-    var aYD: Pt = {x:0,y:0};
-    var aGD: Pt = {x:0,y:0};
-    var aBD: Pt = {x:0,y:0};
-    var aID: Pt = {x:0,y:0};
-    var aVD: Pt = {x:0,y:0};
+    // public function aimRD(dest: String) { aRD = point(dest); }
+    // public function aimOD(dest: String) { aOD = point(dest); }
+    // public function aimYD(dest: String) { aYD = point(dest); }
+    // public function aimGD(dest: String) { aGD = point(dest); }
+    // public function aimBD(dest: String) { aBD = point(dest); }
+    // public function aimID(dest: String) { aID = point(dest); }
+    // public function aimVD(dest: String) { aVD = point(dest); }
+
+    var aC: Map<String,Pt> = [for (color in C.ROYGBIV) color => {x:0,y:0}];
+    var aD: Map<String,Pt> = [for (color in C.ROYGBIV) color => {x:0,y:0}];
+
+    // var aRC: Pt = {x:0,y:0};
+    // var aOC: Pt = {x:0,y:0};
+    // var aYC: Pt = {x:0,y:0};
+    // var aGC: Pt = {x:0,y:0};
+    // var aBC: Pt = {x:0,y:0};
+    // var aIC: Pt = {x:0,y:0};
+    // var aVC: Pt = {x:0,y:0};
+
+    // var aRD: Pt = {x:0,y:0};
+    // var aOD: Pt = {x:0,y:0};
+    // var aYD: Pt = {x:0,y:0};
+    // var aGD: Pt = {x:0,y:0};
+    // var aBD: Pt = {x:0,y:0};
+    // var aID: Pt = {x:0,y:0};
+    // var aVD: Pt = {x:0,y:0};
 
     public var animating = false;
     public var future = 0.0;
@@ -142,20 +172,20 @@ class Viewport extends Sprite implements Animatible {
 
 
     public function transition() {
-        var aC: Pt = {x:0,y:0};
+        // var aC: Pt = {x:0,y:0};
 
-        switch (g.me().getColor()) {
-            case 'r': aC=aRC;
-            case 'o': aC=aOC;
-            case 'y': aC=aYC;
-            case 'g': aC=aGC;
-            case 'b': aC=aBC;
-            case 'i': aC=aIC;
-            case 'v': aC=aVC;
-        }
+        // switch (g.player().getColor()) {
+        //     case 'r': aC=aRC;
+        //     case 'o': aC=aOC;
+        //     case 'y': aC=aYC;
+        //     case 'g': aC=aGC;
+        //     case 'b': aC=aBC;
+        //     case 'i': aC=aIC;
+        //     case 'v': aC=aVC;
+        // }
 
-        move((aC.x + w/2 - board.x) / 2,
-             (aC.y + h/2 - board.y) / 2);
+        move((aC[g.player().getColor()].x + w/2 - board.x) / 2,
+             (aC[g.player().getColor()].y + h/2 - board.y) / 2);
 
         relocateCars();
         relocateDests();
@@ -164,91 +194,146 @@ class Viewport extends Sprite implements Animatible {
     public var carMoved = true;
 
     public function relocateCars() {
-        lC.r.x = Cars.WIDTH.center(aRC.x);
-        lC.r.y = Cars.HEIGHT.center(aRC.y);
-        bC.r.x = lC.r.x + board.x;
-        bC.r.y = lC.r.y + board.y;
+        for (color in C.ROYGBIV) {
+            g.lC.get(color).x = Cars.WIDTH.center(aC[color].x);
+            g.lC.get(color).y = Cars.HEIGHT.center(aC[color].y);
+            g.bC.get(color).x = g.lC.get(color).x + board.x;
+            g.bC.get(color).y = g.lC.get(color).y + board.y;
+        }
 
-        lC.o.x = Cars.WIDTH.center(aOC.x);
-        lC.o.y = Cars.HEIGHT.center(aOC.y);
-        bC.o.x = lC.o.x + board.x;
-        bC.o.y = lC.o.y + board.y;
+        // g.lC.get('o').x = Cars.WIDTH.center(aOC.x);
+        // g.lC.get('o').y = Cars.HEIGHT.center(aOC.y);
+        // g.bC.get('o').x = g.lC.get('o').x + board.x;
+        // g.bC.get('o').y = g.lC.get('o').y + board.y;
 
-        lC.y.x = Cars.WIDTH.center(aYC.x);
-        lC.y.y = Cars.HEIGHT.center(aYC.y);
-        bC.y.x = lC.y.x + board.x;
-        bC.y.y = lC.y.y + board.y;
+        // g.lC.get('y').x = Cars.WIDTH.center(aYC.x);
+        // g.lC.get('y').y = Cars.HEIGHT.center(aYC.y);
+        // g.bC.get('y').x = g.lC.get('y').x + board.x;
+        // g.bC.get('y').y = g.lC.get('y').y + board.y;
 
-        lC.g.x = Cars.WIDTH.center(aGC.x);
-        lC.g.y = Cars.HEIGHT.center(aGC.y);
-        bC.g.x = lC.g.x + board.x;
-        bC.g.y = lC.g.y + board.y;
+        // g.lC.get('g').x = Cars.WIDTH.center(aGC.x);
+        // g.lC.get('g').y = Cars.HEIGHT.center(aGC.y);
+        // g.bC.get('g').x = g.lC.get('g').x + board.x;
+        // g.bC.get('g').y = g.lC.get('g').y + board.y;
 
-        lC.b.x = Cars.WIDTH.center(aBC.x);
-        lC.b.y = Cars.HEIGHT.center(aBC.y);
-        bC.b.x = lC.b.x + board.x;
-        bC.b.y = lC.b.y + board.y;
+        // g.lC.get('b').x = Cars.WIDTH.center(aBC.x);
+        // g.lC.get('b').y = Cars.HEIGHT.center(aBC.y);
+        // g.bC.get('b').x = g.lC.get('b').x + board.x;
+        // g.bC.get('b').y = g.lC.get('b').y + board.y;
 
-        lC.i.x = Cars.WIDTH.center(aIC.x);
-        lC.i.y = Cars.HEIGHT.center(aIC.y);
-        bC.i.x = lC.i.x + board.x;
-        bC.i.y = lC.i.y + board.y;
+        // g.lC.get('i').x = Cars.WIDTH.center(aIC.x);
+        // g.lC.get('i').y = Cars.HEIGHT.center(aIC.y);
+        // g.bC.get('i').x = g.lC.get('i').x + board.x;
+        // g.bC.get('i').y = g.lC.get('i').y + board.y;
 
-        lC.v.x = Cars.WIDTH.center(aVC.x);
-        lC.v.y = Cars.HEIGHT.center(aVC.y);
-        bC.v.x = lC.v.x + board.x;
-        bC.v.y = lC.v.y + board.y;
+        // g.lC.get('v').x = Cars.WIDTH.center(aVC.x);
+        // g.lC.get('v').y = Cars.HEIGHT.center(aVC.y);
+        // g.bC.get('v').x = g.lC.get('v').x + board.x;
+        // g.bC.get('v').y = g.lC.get('v').y + board.y;
     }
 
     public function relocateDests() {
-        lD.r.x = Dests.WIDTH.center(aRD.x);
-        lD.r.y = Dests.HEIGHT.center(aRD.y);
-        bD.r.x = lD.r.x + board.x;
-        bD.r.y = lD.r.y + board.y;
+        for (color in C.ROYGBIV) {
+            g.lD.get(color).x = Dests.WIDTH.center(aD[color].x);
+            g.lD.get(color).y = Dests.HEIGHT.center(aD[color].y);
+            g.bD.get(color).x = g.lD.get(color).x + board.x;
+            g.bD.get(color).y = g.lD.get(color).y + board.y;
+        }
 
-        lD.o.x = Dests.WIDTH.center(aOD.x);
-        lD.o.y = Dests.HEIGHT.center(aOD.y);
-        bD.o.x = lD.o.x + board.x;
-        bD.o.y = lD.o.y + board.y;
+        // g.lD.get('o').x = Dests.WIDTH.center(aOD.x);
+        // g.lD.get('o').y = Dests.HEIGHT.center(aOD.y);
+        // g.bD.get('o').x = g.lD.get('o').x + board.x;
+        // g.bD.get('o').y = g.lD.get('o').y + board.y;
 
-        lD.y.x = Dests.WIDTH.center(aYD.x);
-        lD.y.y = Dests.HEIGHT.center(aYD.y);
-        bD.y.x = lD.y.x + board.x;
-        bD.y.y = lD.y.y + board.y;
+        // g.lD.get('y').x = Dests.WIDTH.center(aYD.x);
+        // g.lD.get('y').y = Dests.HEIGHT.center(aYD.y);
+        // g.bD.get('y').x = g.lD.get('y').x + board.x;
+        // g.bD.get('y').y = g.lD.get('y').y + board.y;
 
-        lD.g.x = Dests.WIDTH.center(aGD.x);
-        lD.g.y = Dests.HEIGHT.center(aGD.y);
-        bD.g.x = lD.g.x + board.x;
-        bD.g.y = lD.g.y + board.y;
+        // g.lD.get('g').x = Dests.WIDTH.center(aGD.x);
+        // g.lD.get('g').y = Dests.HEIGHT.center(aGD.y);
+        // g.bD.get('g').x = g.lD.get('g').x + board.x;
+        // g.bD.get('g').y = g.lD.get('g').y + board.y;
 
-        lD.b.x = Dests.WIDTH.center(aBD.x);
-        lD.b.y = Dests.HEIGHT.center(aBD.y);
-        bD.b.x = lD.b.x + board.x;
-        bD.b.y = lD.b.y + board.y;
+        // g.lD.get('b').x = Dests.WIDTH.center(aBD.x);
+        // g.lD.get('b').y = Dests.HEIGHT.center(aBD.y);
+        // g.bD.get('b').x = g.lD.get('b').x + board.x;
+        // g.bD.get('b').y = g.lD.get('b').y + board.y;
 
-        lD.i.x = Dests.WIDTH.center(aID.x);
-        lD.i.y = Dests.HEIGHT.center(aID.y);
-        bD.i.x = lD.i.x + board.x;
-        bD.i.y = lD.i.y + board.y;
+        // g.lD.get('i').x = Dests.WIDTH.center(aID.x);
+        // g.lD.get('i').y = Dests.HEIGHT.center(aID.y);
+        // g.bD.get('i').x = g.lD.get('i').x + board.x;
+        // g.bD.get('i').y = g.lD.get('i').y + board.y;
 
-        lD.v.x = Dests.WIDTH.center(aVD.x);
-        lD.v.y = Dests.HEIGHT.center(aVD.y);
-        bD.v.x = lD.v.x + board.x;
-        bD.v.y = lD.v.y + board.y;
+        // g.lD.get('v').x = Dests.WIDTH.center(aVD.x);
+        // g.lD.get('v').y = Dests.HEIGHT.center(aVD.y);
+        // g.bD.get('v').x = g.lD.get('v').x + board.x;
+        // g.bD.get('v').y = g.lD.get('v').y + board.y;
     }
 
-    function click(m: MouseEvent) {
-        var p1 = m.localX - board.x;
-        var p2 = m.localY - board.y;
+    var mdz: Bool;
+    var mdzX: Float;
+    var mdzY: Float;
+    var mdzColor: String;
 
-        for (p in nodePoints)
-            if (p.x-6 < p1&&p1 < p.x+6 &&
-                p.y-6 < p2&&p2 < p.y+6) {
+    function mouseDownZoom(m: MouseEvent) {
+        mdzColor = g.bC.colorClickedOn(m.localX,m.localY);
+        if (mdzColor == '') mdzColor = g.bD.colorClickedOn(m.localX,m.localY);
+        mdz=true;
+        mdzX=m.localX;
+        mdzY=m.localY;
+    }
 
-                infoCard.visible = true;
-                zoom.visible = false;
-                slide.play();
-            }
+    function mouseMoveZoom(m: MouseEvent) {
+        var dX = (m.localX-mdzX).abs();
+        var dY = (m.localY-mdzY).abs();
+        if (dX > 3 && dY > 3) mdz=false;
+    }
+
+    var paragraphs: Map<String,String>;
+
+    function mouseUpZoom(m: MouseEvent) {
+        if (!mdz) return;
+
+        // player info
+        var car = g.bC.colorClickedOn(m.localX,m.localY);
+        var dest = g.bD.colorClickedOn(m.localX,m.localY);
+        var pc = null;
+        var pd = null;
+
+        for (p in g.players()) {
+            if (p.getColor() == car) pc = p;
+            if (p.getColor() == dest) pd = p;
+        }
+
+        if (pc != null && mdzColor == car) {
+            mdzColor = '';
+            infoCardText.text = 'Name: ${pc.getName()}\n'
+                +'Level: ${pc.getLevel()}\n'
+                +'Location: ${pc.getLoc()}\n'
+                +'Destination: ${pc.getDest()}';
+            infoCard.visible = true;
+            g.slideSfx();
+        } else if (pd != null && mdzColor == dest) {
+            mdzColor = '';
+            var spot = pd.getDest();
+            infoCardText.text = '$spot\n\n${paragraphs[spot]}';
+            infoCard.visible = true;
+            g.slideSfx();
+        } else {
+            var p1 = m.localX - board.x;
+            var p2 = m.localY - board.y;
+
+            for (p in nodePoints)
+                if (p.x-6 < p1&&p1 < p.x+6 &&
+                    p.y-6 < p2&&p2 < p.y+6) {
+
+                    var spot = pointToName(p.x,p.y);
+                    infoCardText.text = '$spot\n\n${paragraphs[spot]}';
+                    infoCard.visible = true;
+                    g.slideSfx();
+                }
+        }
     }
 
     function doubleClick(m: MouseEvent) {
@@ -256,75 +341,83 @@ class Viewport extends Sprite implements Animatible {
 
         // zoom in on tapped location
         if (world.visible) {
+            var pcx = [for (color in C.ROYGBIV) color => g.bC.get(color).x - board.x];
+            var pcy = [for (color in C.ROYGBIV) color => g.bC.get(color).y - board.y];
+            var pdx = [for (color in C.ROYGBIV) color => g.bD.get(color).x - board.x];
+            var pdy = [for (color in C.ROYGBIV) color => g.bD.get(color).y - board.y];
 
-            // get pure pre-move car & dest coordinates
-            var prcx = bC.r.x - board.x;
-            var prcy = bC.r.y - board.y;
-            var pocx = bC.o.x - board.x;
-            var pocy = bC.o.y - board.y;
-            var pycx = bC.y.x - board.x;
-            var pycy = bC.y.y - board.y;
-            var pgcx = bC.g.x - board.x;
-            var pgcy = bC.g.y - board.y;
-            var pbcx = bC.b.x - board.x;
-            var pbcy = bC.b.y - board.y;
-            var picx = bC.i.x - board.x;
-            var picy = bC.i.y - board.y;
-            var pvcx = bC.v.x - board.x;
-            var pvcy = bC.v.y - board.y;
+            // for (color in C.ROYGBIV) {
+            //     // get pure pre-move car & dest coordinates
+            //     var pcx = g.bC.get(color).x - board.x;
+            //     var pcy = g.bC.get(color).y - board.y;
+            //     // var pocx = g.bC.get('o').x - board.x;
+            //     // var pocy = g.bC.get('o').y - board.y;
+            //     // var pycx = g.bC.get('y').x - board.x;
+            //     // var pycy = g.bC.get('y').y - board.y;
+            //     // var pgcx = g.bC.get('g').x - board.x;
+            //     // var pgcy = g.bC.get('g').y - board.y;
+            //     // var pbcx = g.bC.get('b').x - board.x;
+            //     // var pbcy = g.bC.get('b').y - board.y;
+            //     // var picx = g.bC.get('i').x - board.x;
+            //     // var picy = g.bC.get('i').y - board.y;
+            //     // var pvcx = g.bC.get('v').x - board.x;
+            //     // var pvcy = g.bC.get('v').y - board.y;
 
-            var prdx = bD.r.x - board.x;
-            var prdy = bD.r.y - board.y;
-            var podx = bD.o.x - board.x;
-            var pody = bD.o.y - board.y;
-            var pydx = bD.y.x - board.x;
-            var pydy = bD.y.y - board.y;
-            var pgdx = bD.g.x - board.x;
-            var pgdy = bD.g.y - board.y;
-            var pbdx = bD.b.x - board.x;
-            var pbdy = bD.b.y - board.y;
-            var pidx = bD.i.x - board.x;
-            var pidy = bD.i.y - board.y;
-            var pvdx = bD.v.x - board.x;
-            var pvdy = bD.v.y - board.y;
+            //     var pdx = g.bD.get(color).x - board.x;
+            //     var pdy = g.bD.get(color).y - board.y;
+            //     // var podx = g.bD.get('o').x - board.x;
+            //     // var pody = g.bD.get('o').y - board.y;
+            //     // var pydx = g.bD.get('y').x - board.x;
+            //     // var pydy = g.bD.get('y').y - board.y;
+            //     // var pgdx = g.bD.get('g').x - board.x;
+            //     // var pgdy = g.bD.get('g').y - board.y;
+            //     // var pbdx = g.bD.get('b').x - board.x;
+            //     // var pbdy = g.bD.get('b').y - board.y;
+            //     // var pidx = g.bD.get('i').x - board.x;
+            //     // var pidy = g.bD.get('i').y - board.y;
+            //     // var pvdx = g.bD.get('v').x - board.x;
+            //     // var pvdy = g.bD.get('v').y - board.y;
+            // }
 
             move(m.localX, m.localY);
 
-            bC.r.x = prcx + board.x;
-            bC.r.y = prcy + board.y;
-            bC.o.x = pocx + board.x;
-            bC.o.y = pocy + board.y;
-            bC.y.x = pycx + board.x;
-            bC.y.y = pycy + board.y;
-            bC.g.x = pgcx + board.x;
-            bC.g.y = pgcy + board.y;
-            bC.b.x = pbcx + board.x;
-            bC.b.y = pbcy + board.y;
-            bC.i.x = picx + board.x;
-            bC.i.y = picy + board.y;
-            bC.v.x = pvcx + board.x;
-            bC.v.y = pvcy + board.y;
-            bD.r.x = prdx + board.x;
-            bD.r.y = prdy + board.y;
-            bD.o.x = podx + board.x;
-            bD.o.y = pody + board.y;
-            bD.y.x = pydx + board.x;
-            bD.y.y = pydy + board.y;
-            bD.g.x = pgdx + board.x;
-            bD.g.y = pgdy + board.y;
-            bD.b.x = pbdx + board.x;
-            bD.b.y = pbdy + board.y;
-            bD.i.x = pidx + board.x;
-            bD.i.y = pidy + board.y;
-            bD.v.x = pvdx + board.x;
-            bD.v.y = pvdy + board.y;
+            for (color in C.ROYGBIV) {
+                g.bC.get(color).x = pcx[color] + board.x;
+                g.bC.get(color).y = pcy[color] + board.y;
+                // g.bC.get('o').x = pocx + board.x;
+                // g.bC.get('o').y = pocy + board.y;
+                // g.bC.get('y').x = pycx + board.x;
+                // g.bC.get('y').y = pycy + board.y;
+                // g.bC.get('g').x = pgcx + board.x;
+                // g.bC.get('g').y = pgcy + board.y;
+                // g.bC.get('b').x = pbcx + board.x;
+                // g.bC.get('b').y = pbcy + board.y;
+                // g.bC.get('i').x = picx + board.x;
+                // g.bC.get('i').y = picy + board.y;
+                // g.bC.get('v').x = pvcx + board.x;
+                // g.bC.get('v').y = pvcy + board.y;
+                g.bD.get(color).x = pdx[color] + board.x;
+                g.bD.get(color).y = pdy[color] + board.y;
+                // g.bD.get('o').x = podx + board.x;
+                // g.bD.get('o').y = pody + board.y;
+                // g.bD.get('y').x = pydx + board.x;
+                // g.bD.get('y').y = pydy + board.y;
+                // g.bD.get('g').x = pgdx + board.x;
+                // g.bD.get('g').y = pgdy + board.y;
+                // g.bD.get('b').x = pbdx + board.x;
+                // g.bD.get('b').y = pbdy + board.y;
+                // g.bD.get('i').x = pidx + board.x;
+                // g.bD.get('i').y = pidy + board.y;
+                // g.bD.get('v').x = pvdx + board.x;
+                // g.bD.get('v').y = pvdy + board.y;
+            }
         }
 
         zoom.visible = !zoom.visible;
         world.visible = !world.visible;
 
         mouseHeld = false;
-        slide.play();
+        g.slideSfx();
     }
 
     /* Move the board as much as it can within the boundaries of the screen,
@@ -353,74 +446,110 @@ class Viewport extends Sprite implements Animatible {
             var xp = board.x + posX - lastX;
             var yp = board.y + posY - lastY;
 
-            var xrc = bC.r.x + posX - lastX;
-            var yrc = bC.r.y + posY - lastY;
-            var xoc = bC.o.x + posX - lastX;
-            var yoc = bC.o.y + posY - lastY;
-            var xyc = bC.y.x + posX - lastX;
-            var yyc = bC.y.y + posY - lastY;
-            var xgc = bC.g.x + posX - lastX;
-            var ygc = bC.g.y + posY - lastY;
-            var xbc = bC.b.x + posX - lastX;
-            var ybc = bC.b.y + posY - lastY;
-            var xic = bC.i.x + posX - lastX;
-            var yic = bC.i.y + posY - lastY;
-            var xvc = bC.v.x + posX - lastX;
-            var yvc = bC.v.y + posY - lastY;
-
-            var xrd = bD.r.x + posX - lastX;
-            var yrd = bD.r.y + posY - lastY;
-            var xod = bD.o.x + posX - lastX;
-            var yod = bD.o.y + posY - lastY;
-            var xyd = bD.y.x + posX - lastX;
-            var yyd = bD.y.y + posY - lastY;
-            var xgd = bD.g.x + posX - lastX;
-            var ygd = bD.g.y + posY - lastY;
-            var xbd = bD.b.x + posX - lastX;
-            var ybd = bD.b.y + posY - lastY;
-            var xid = bD.i.x + posX - lastX;
-            var yid = bD.i.y + posY - lastY;
-            var xvd = bD.v.x + posX - lastX;
-            var yvd = bD.v.y + posY - lastY;
+            
 
             if (xp >= left && xp <= right) {
                 board.x = xp;
 
-                bC.r.x = xrc;
-                bC.o.x = xoc;
-                bC.y.x = xyc;
-                bC.g.x = xgc;
-                bC.b.x = xbc;
-                bC.i.x = xic;
-                bC.v.x = xvc;
+                for (color in C.ROYGBIV) {
+                    var xc = g.bC.get(color).x + posX - lastX;
+                    var yc = g.bC.get(color).y + posY - lastY;
+                    // var xoc = g.bC.get('o').x + posX - lastX;
+                    // var yoc = g.bC.get('o').y + posY - lastY;
+                    // var xyc = g.bC.get('y').x + posX - lastX;
+                    // var yyc = g.bC.get('y').y + posY - lastY;
+                    // var xgc = g.bC.get('g').x + posX - lastX;
+                    // var ygc = g.bC.get('g').y + posY - lastY;
+                    // var xbc = g.bC.get('b').x + posX - lastX;
+                    // var ybc = g.bC.get('b').y + posY - lastY;
+                    // var xic = g.bC.get('i').x + posX - lastX;
+                    // var yic = g.bC.get('i').y + posY - lastY;
+                    // var xvc = g.bC.get('v').x + posX - lastX;
+                    // var yvc = g.bC.get('v').y + posY - lastY;
 
-                bD.r.x = xrd;
-                bD.o.x = xod;
-                bD.y.x = xyd;
-                bD.g.x = xgd;
-                bD.b.x = xbd;
-                bD.i.x = xid;
-                bD.v.x = xvd;
+                    var xd = g.bD.get(color).x + posX - lastX;
+                    var yd = g.bD.get(color).y + posY - lastY;
+                    // var xod = g.bD.get('o').x + posX - lastX;
+                    // var yod = g.bD.get('o').y + posY - lastY;
+                    // var xyd = g.bD.get('y').x + posX - lastX;
+                    // var yyd = g.bD.get('y').y + posY - lastY;
+                    // var xgd = g.bD.get('g').x + posX - lastX;
+                    // var ygd = g.bD.get('g').y + posY - lastY;
+                    // var xbd = g.bD.get('b').x + posX - lastX;
+                    // var ybd = g.bD.get('b').y + posY - lastY;
+                    // var xid = g.bD.get('i').x + posX - lastX;
+                    // var yid = g.bD.get('i').y + posY - lastY;
+                    // var xvd = g.bD.get('v').x + posX - lastX;
+                    // var yvd = g.bD.get('v').y + posY - lastY;
+
+                    g.bC.get(color).x = xc;
+                    // g.bC.get('o').x = xoc;
+                    // g.bC.get('y').x = xyc;
+                    // g.bC.get('g').x = xgc;
+                    // g.bC.get('b').x = xbc;
+                    // g.bC.get('i').x = xic;
+                    // g.bC.get('v').x = xvc;
+
+                    g.bD.get(color).x = xd;
+                    // g.bD.get('o').x = xod;
+                    // g.bD.get('y').x = xyd;
+                    // g.bD.get('g').x = xgd;
+                    // g.bD.get('b').x = xbd;
+                    // g.bD.get('i').x = xid;
+                    // g.bD.get('v').x = xvd;
+                }
             }
 
             if (yp >= top && yp <= bottom) {
                 board.y = yp;
 
-                bC.r.y = yrc;
-                bC.o.y = yoc;
-                bC.y.y = yyc;
-                bC.g.y = ygc;
-                bC.b.y = ybc;
-                bC.i.y = yic;
-                bC.v.y = yvc;
+                for (color in C.ROYGBIV) {
+                    var xc = g.bC.get(color).x + posX - lastX;
+                    var yc = g.bC.get(color).y + posY - lastY;
+                    // var xoc = g.bC.get('o').x + posX - lastX;
+                    // var yoc = g.bC.get('o').y + posY - lastY;
+                    // var xyc = g.bC.get('y').x + posX - lastX;
+                    // var yyc = g.bC.get('y').y + posY - lastY;
+                    // var xgc = g.bC.get('g').x + posX - lastX;
+                    // var ygc = g.bC.get('g').y + posY - lastY;
+                    // var xbc = g.bC.get('b').x + posX - lastX;
+                    // var ybc = g.bC.get('b').y + posY - lastY;
+                    // var xic = g.bC.get('i').x + posX - lastX;
+                    // var yic = g.bC.get('i').y + posY - lastY;
+                    // var xvc = g.bC.get('v').x + posX - lastX;
+                    // var yvc = g.bC.get('v').y + posY - lastY;
 
-                bD.r.y = yrd;
-                bD.o.y = yod;
-                bD.y.y = yyd;
-                bD.g.y = ygd;
-                bD.b.y = ybd;
-                bD.i.y = yid;
-                bD.v.y = yvd;
+                    var xd = g.bD.get(color).x + posX - lastX;
+                    var yd = g.bD.get(color).y + posY - lastY;
+                    // var xod = g.bD.get('o').x + posX - lastX;
+                    // var yod = g.bD.get('o').y + posY - lastY;
+                    // var xyd = g.bD.get('y').x + posX - lastX;
+                    // var yyd = g.bD.get('y').y + posY - lastY;
+                    // var xgd = g.bD.get('g').x + posX - lastX;
+                    // var ygd = g.bD.get('g').y + posY - lastY;
+                    // var xbd = g.bD.get('b').x + posX - lastX;
+                    // var ybd = g.bD.get('b').y + posY - lastY;
+                    // var xid = g.bD.get('i').x + posX - lastX;
+                    // var yid = g.bD.get('i').y + posY - lastY;
+                    // var xvd = g.bD.get('v').x + posX - lastX;
+                    // var yvd = g.bD.get('v').y + posY - lastY;
+
+                    g.bC.get(color).y = yc;
+                    // g.bC.get('o').y = yoc;
+                    // g.bC.get('y').y = yyc;
+                    // g.bC.get('g').y = ygc;
+                    // g.bC.get('b').y = ybc;
+                    // g.bC.get('i').y = yic;
+                    // g.bC.get('v').y = yvc;
+
+                    g.bD.get(color).y = yd;
+                    // g.bD.get('o').y = yod;
+                    // g.bD.get('y').y = yyd;
+                    // g.bD.get('g').y = ygd;
+                    // g.bD.get('b').y = ybd;
+                    // g.bD.get('i').y = yid;
+                    // g.bD.get('v').y = yvd;
+                }
             }
             
         }
@@ -443,21 +572,24 @@ class Viewport extends Sprite implements Animatible {
 
         var map = new Tilemap(w, h, set);
         map.addTile(board = new Tile());
-        map.addTile(bD.r);
-        map.addTile(bD.o);
-        map.addTile(bD.y);
-        map.addTile(bD.g);
-        map.addTile(bD.b);
-        map.addTile(bD.i);
-        map.addTile(bD.v);
 
-        map.addTile(bC.r);
-        map.addTile(bC.o);
-        map.addTile(bC.y);
-        map.addTile(bC.g);
-        map.addTile(bC.b);
-        map.addTile(bC.i);
-        map.addTile(bC.v);
+        for (dest in g.bD.all()) map.addTile(dest);
+        
+        // map.addTile(g.bD.o);
+        // map.addTile(g.bD.y);
+        // map.addTile(g.bD.g);
+        // map.addTile(g.bD.b);
+        // map.addTile(g.bD.i);
+        // map.addTile(g.bD.v);
+
+        for (car in g.bC.all()) map.addTile(car);
+
+        // map.addTile(g.bC.o);
+        // map.addTile(g.bC.y);
+        // map.addTile(g.bC.g);
+        // map.addTile(g.bC.b);
+        // map.addTile(g.bC.i);
+        // map.addTile(g.bC.v);
 
         return map.mapToSprite();
     }
@@ -465,21 +597,23 @@ class Viewport extends Sprite implements Animatible {
     function littleMap() {
         var map = 'etc/map.png'.tilemap();
 
-        map.addTile(lD.r);
-        map.addTile(lD.o);
-        map.addTile(lD.y);
-        map.addTile(lD.g);
-        map.addTile(lD.b);
-        map.addTile(lD.i);
-        map.addTile(lD.v);
+        for (dest in g.lD.all()) map.addTile(dest);
+        // map.addTile(g.lD.r);
+        // map.addTile(g.lD.o);
+        // map.addTile(g.lD.y);
+        // map.addTile(g.lD.g);
+        // map.addTile(g.lD.b);
+        // map.addTile(g.lD.i);
+        // map.addTile(g.lD.v);
 
-        map.addTile(lC.r);
-        map.addTile(lC.o);
-        map.addTile(lC.y);
-        map.addTile(lC.g);
-        map.addTile(lC.b);
-        map.addTile(lC.i);
-        map.addTile(lC.v);
+        for (car in g.lC.all()) map.addTile(car);
+        // map.addTile(g.lC.r);
+        // map.addTile(g.lC.o);
+        // map.addTile(g.lC.y);
+        // map.addTile(g.lC.g);
+        // map.addTile(g.lC.b);
+        // map.addTile(g.lC.i);
+        // map.addTile(g.lC.v);
 
         var spr = map.mapToSprite();
         spr.width = w;

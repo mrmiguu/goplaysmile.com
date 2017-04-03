@@ -3,7 +3,7 @@ package;
 import openfl.display.Sprite;
 import openfl.events.MouseEvent;
 
-using Consts;
+using C;
 
 class Button extends Sprite implements IButton {
     var pushFn = function(){};
@@ -43,6 +43,9 @@ class Button extends Sprite implements IButton {
     public function setVisible(tf: Bool) {
         shadow.visible = visible = tf;
     }
+
+    public function getX() { return x; }
+    public function getY() { return y; }
 
     public function setX(x: Float) {
         shadow.x = (this.x = x) - (shadow.width - up.width)/2;

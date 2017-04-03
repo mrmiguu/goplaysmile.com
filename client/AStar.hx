@@ -1,6 +1,6 @@
 package;
 
-using Consts;
+using C;
 
 class AStar {
 

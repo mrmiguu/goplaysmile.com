@@ -7,7 +7,7 @@ import openfl.display.Tileset;
 import openfl.events.MouseEvent;
 import openfl.geom.Rectangle;
 
-using Consts;
+using C;
 using Math;
 using Std;
 
@@ -17,14 +17,15 @@ class Die extends SpriteSheet {
     var lifts = [for (n in 0...3) 'die/lift${n}.ogg'.sound()];
     var lands = [for (n in 0...3) 'die/land${n}.ogg'.sound()];
 
-    var card: Card;
+    var g: Globals;
     var rollSent: Bool;
+    var color: String;
 
-    public function new(g: Globals, card: Card) {
-        super('die/dice.png', 6, 6, 0.025);
+    public function new(g: Globals, color: String) {
+        super('die/${color}ice.png', 6, 6, 0.025);
 
-        g.roll = roll;
-        this.card = card;
+        this.g = g;
+        this.color = color;
 
         addEventListener(MouseEvent.CLICK, function(e) {
             if (!rollSent) {
@@ -32,6 +33,14 @@ class Die extends SpriteSheet {
                 rollSent = true;
             }
         });
+    }
+
+    public function setX(x: Float) {
+        this.x = width.center(x);
+    }
+
+    public function setY(y: Float) {
+        this.y = y-height;
     }
 
     public function roll(side: Int) {
@@ -42,10 +51,15 @@ class Die extends SpriteSheet {
     }
 
     public override function begin() {
-        if (!card.animating) card.target = state;
-        if (paperdoll != null) paperdoll.state = state;
+        if (g.player().getColor() == color && !g.card().animating)
+            g.card().target = state;
+
+        if (paperdoll != null)
+            paperdoll.state = state;
         
-        card.animating = true;
+        if (g.player().getColor() == color)
+            g.card().animating = true;
+
         lifts[lifts.length.random()].play();
     }
 

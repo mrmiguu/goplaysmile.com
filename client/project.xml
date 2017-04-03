@@ -8,6 +8,7 @@
 
     <haxelib name="extension-iap" />
 	<haxelib name="openfl" />
+    <haxelib name="actuate" />
 	<icon path="assets/etc/app.png" />
 	<assets path="Assets" rename="assets" />
 	<haxedef name="HXCPP_CHECK_POINTER"/>  <!--makes null references cause errors-->

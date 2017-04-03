@@ -3,7 +3,7 @@ package;
 import openfl.display.Sprite;
 import openfl.text.TextField;
 
-using Consts;
+using C;
 
 class Field extends Sprite {
     var g: Globals;
@@ -74,7 +74,7 @@ class Field extends Sprite {
 
             r.visible = false;
         } else if (t20.length == 1) {
-            l.x = (tE*2).center(Consts.WIDTH/2);
+            l.x = (tE*2).center(C.WIDTH/2);
             l.visible = true;
             
             for (m in ms) m.visible = false;
@@ -82,7 +82,7 @@ class Field extends Sprite {
             r.x = l.x+tE;
             r.visible = true;
         } else {
-            l.x = ((tE*2)+tW*(t20.length-1)).center(Consts.WIDTH/2);
+            l.x = ((tE*2)+tW*(t20.length-1)).center(C.WIDTH/2);
             l.visible = true;
 
             for (m in ms) m.visible = false;

@@ -3,7 +3,7 @@ package;
 import openfl.display.Sprite;
 import openfl.text.TextField;
 
-using Consts;
+using C;
 using Math;
 using Std;
 
@@ -11,16 +11,17 @@ class Level extends SpriteSheet {
     
     public var text: TextField;
 
-    var lv = 1;
+    var g: Globals;
     var req: Int;
     var exp: Int;
     var sound = 'lvl/up.ogg'.sound();
     var bar: Sprite;
 
-    public function new(gps: Sprite, bar: Sprite) {
+    public function new(g: Globals, gps: Sprite, bar: Sprite) {
 
         super('lvl/fireworks.png', 5, 8, 0.025);
 
+        this.g = g;
         this.bar = bar;
 
         x = gps.x + width.center(220);
@@ -49,7 +50,7 @@ class Level extends SpriteSheet {
 
     function updateBar() {
 
-        bar.width = Consts.WIDTH * exp / (req - 1);
+        bar.width = C.WIDTH * exp / (req - 1);
     }
 
     public function set(req: Int, exp: Int, lv: Int) {
@@ -59,9 +60,9 @@ class Level extends SpriteSheet {
         updateBar();
 
         // check for level-up
-        if (lv > this.lv) increaseLevel();
+        if (lv > g.player().getLevel()) increaseLevel();
 
-        this.lv = lv;
+        g.player().setLevel(lv);
     }
 
     function increaseLevel() {
@@ -72,6 +73,6 @@ class Level extends SpriteSheet {
 
     function updateText() {
 
-        text.text = '${lv}';
+        text.text = '${g.player().getLevel()}';
     }
 }

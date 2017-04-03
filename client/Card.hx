@@ -4,12 +4,11 @@ import openfl.display.Sprite;
 import openfl.display.Tile;
 import openfl.display.Tilemap;
 
-using Consts;
+using C;
 using Std;
 
 class Card extends Animation {
-
-    public var sprite: Sprite;
+    public var canvas: Sprite;
     public var h = 288;
     public var target = 0;
     var pick = 'roller/pick.ogg'.sound();
@@ -18,43 +17,37 @@ class Card extends Animation {
     var current = 6;
     var instr = [];
 
-    var roller: Sprite;
     var focus: Tile;
     var double: Tile;
     
     var g: Globals;
 
-    public function new(g: Globals, name: String, roller: Sprite) {
-
+    public function new(g: Globals, name: String) {
         super(6, 0.125);
 
-        this.roller = roller;
         this.g = g;
 
-        var map = 'roller/${name}.png'.tilemap(
-            roller.width.int(), roller.height.int());
+        var map = 'roller/$name.png'.tilemap(
+            g.rollerW().int(), g.rollerH().int());
         focus = map.getTileAt(0);
         map.addTile(double = new Tile());
 
-        sprite = map.mapToSprite();
-        sprite.y = roller.y;
-    }
+        canvas = map.mapToSprite();
+        canvas.y = g.rollerY();
 
-    public function i(y: Int) {
-
-        if (instr.length < frames) instr.push(y);
-        else sel();
+        switch (name) {
+            case 'c1': instr = [38,96,143,183,223,263];
+        }
     }
 
     public function sel() {
-
         if (instr.length < frames) return;
 
-        focus.y = roller.height / 2 - instr[current];
+        focus.y = g.rollerH()/2 - instr[current];
         double.visible = true;
 
         if (focus.y > 0) double.y = focus.y - h;
-        else if (focus.y < roller.height - h) double.y = focus.y + h;
+        else if (focus.y < g.rollerH()-h) double.y = focus.y + h;
         else double.visible = false;
     }
 
@@ -63,14 +56,13 @@ class Card extends Animation {
     public override function end() { progress(); }
 
     function progress() {
-
         if (instr.length < frames) return;
         if (current == target) {
             animating = false;
             
-            if (!g.me().onGoal()) {
+            if (!g.player().onGoal()) {
                 if (g.v.carMoved) vrooms[vrooms.length.random()].play();
-                // if (g.me().onGoal()) arrival.play();
+                // if (g.player().onGoal()) arrival.play();
             }
             
             return;

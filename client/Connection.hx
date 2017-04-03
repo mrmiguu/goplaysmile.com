@@ -6,7 +6,7 @@ import openfl.events.Event;
 import sys.net.Host;
 import sys.net.Socket;
 
-using Consts;
+using C;
 using sys.net.Socket;
 
 class Connection extends Sprite implements IButton {
@@ -75,9 +75,21 @@ class Connection extends Sprite implements IButton {
 
             case 'exp':
                 playerExperienceArrived(
+                    serial.next(), // player
                     serial.next(), // required
                     serial.next(), // experience
                     serial.next() // level
+                );
+
+            case 'level':
+                playerLevelArrived(
+                    serial.next(), // player
+                    serial.next() // level
+                );
+
+            case 'exit':
+                playerExitArrived(
+                    serial.next() // player
                 );
         }
     }
@@ -85,21 +97,26 @@ class Connection extends Sprite implements IButton {
     function initArrived() {
         trace('initArrived');
         // switch to the logged-in screen
+        g.resetBgMouseDown();
+        g.showOverlay();
         g.carRoulette.animating = true;
         g.radio.push(g.carPick);
     }
 
     function playerColorArrived(user: String, color: String) {
         trace('playerColorArrived');
+
         g.player(user).setColor(color);
-        g.radio.push(g.toFrom);
-        g.carRoulette.animating = false;
-        g.t.reset();
+
+        if (g.me(user)) {
+            g.carRoulette.animating = false;
+            g.t.reset();
+        }
     }
 
     function dieInfoArrived(side: Int) {
         trace('dieInfoArrived');
-        g.roll(side);
+        g.die().roll(side);
     }
 
     function playerLocationArrived(user: String, loc: String) {
@@ -114,12 +131,23 @@ class Connection extends Sprite implements IButton {
 
     function playerArrived() {
         trace('playerArrived');
-        g.me().arrived();
+        g.player().arrived();
     }
 
-    function playerExperienceArrived(req: Int, exp: Int, lv: Int) {
+    function playerExperienceArrived(user: String, req: Int, exp: Int, lv: Int) {
         trace('playerExperienceArrived');
-        g.l.set(req,exp,lv);
+        if (user != g.user) g.player(user).setLevel(lv);
+        else g.l.set(req,exp,lv); // it's us
+    }
+
+    function playerLevelArrived(user: String, lv: Int) {
+        trace('playerExperienceArrived');
+        if (user != g.user) g.player(user).setLevel(lv);
+    }
+
+    function playerExitArrived(user: String) {
+        trace('playerExitArrived');
+        g.removePlayer(user);
     }
 
     // var fpsFuture: Float;
@@ -140,6 +168,7 @@ class Connection extends Sprite implements IButton {
             try read(server.input.readLine())
             catch (e: Dynamic) {}
 
+        // one letter every loop
         if (sockets.write.length > 0)
             if (g.out.length > 0)
                 server.output.writeString('${g.out.take()}\r\n');

@@ -2,7 +2,7 @@ package;
 
 import haxe.ds.ArraySort;
 
-using Consts;
+using C;
 using Math;
 
 class AI {

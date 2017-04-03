@@ -1,18 +1,30 @@
 package;
 
-using Consts;
+using C;
 
 class Cars {
     public static inline var WIDTH = 78;
     public static inline var HEIGHT = 84;
 
-    public var r = 'cars/r.png'.tile();
-    public var o = 'cars/o.png'.tile();
-    public var y = 'cars/y.png'.tile();
-    public var g = 'cars/g.png'.tile();
-    public var b = 'cars/b.png'.tile();
-    public var i = 'cars/i.png'.tile();
-    public var v = 'cars/v.png'.tile();
+    var carMap = [for (color in C.ROYGBIV) color => 'cars/$color.png'.tile()];
 
-    public function new() {}
+    public function new() {
+        for (car in carMap) car.visible = false;
+    }
+
+    public function get(color: String) {
+        return carMap[color];
+    }
+
+    public function all() {
+        return carMap.iterator();
+    }
+
+    public function colorClickedOn(mx: Float, my: Float) {
+        for (color in C.ROYGBIV)
+            if (carMap[color].x < mx&&mx < carMap[color].x+WIDTH &&
+                carMap[color].y < my&&my < carMap[color].y+HEIGHT)
+                return color;
+        return '';
+    }
 }

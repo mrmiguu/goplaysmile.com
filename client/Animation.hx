@@ -8,7 +8,7 @@ import openfl.events.MouseEvent;
 import openfl.geom.Rectangle;
 import openfl.text.TextField;
 
-using Consts;
+using C;
 using Math;
 using Std;
 

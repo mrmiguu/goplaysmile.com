@@ -1,6 +1,6 @@
 package;
 
-using Consts;
+using C;
 using Std;
 
 typedef F = Player->Void;

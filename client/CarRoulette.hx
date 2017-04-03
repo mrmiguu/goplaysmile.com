@@ -2,7 +2,7 @@ package;
 
 import openfl.events.MouseEvent;
 
-using Consts;
+using C;
 using Math;
 
 class CarRoulette implements Animatible {
@@ -11,13 +11,7 @@ class CarRoulette implements Animatible {
     public var delay = 0.01;
     var g: Globals;
     var table = 'etc/carPick.png'.sprite();
-    var rCar = 'cars/r.png'.sprite();
-    var oCar = 'cars/o.png'.sprite();
-    var yCar = 'cars/y.png'.sprite();
-    var gCar = 'cars/g.png'.sprite();
-    var bCar = 'cars/b.png'.sprite();
-    var iCar = 'cars/i.png'.sprite();
-    var vCar = 'cars/v.png'.sprite();
+    var carMap = [for (color in C.ROYGBIV) color => 'cars/$color.png'.sprite()];
     var c_w = 78/2;
     var c_h = 84/2;
     var r=200;
@@ -35,70 +29,34 @@ class CarRoulette implements Animatible {
     public function new(g: Globals) {
         this.g = g;
 
-        table.y = Consts.HEIGHT - table.height;
+        table.y = C.HEIGHT - table.height;
         o_x = table.x+table.width/2;
         o_y = table.y+table.height/2;
         g.carPick.addChild(table);
 
-        g.carPick.addChild(rCar);
-        g.carPick.addChild(oCar);
-        g.carPick.addChild(yCar);
-        g.carPick.addChild(gCar);
-        g.carPick.addChild(bCar);
-        g.carPick.addChild(iCar);
-        g.carPick.addChild(vCar);
+        for (color in C.ROYGBIV) {
+            g.carPick.addChild(carMap[color]);
+            carMap[color].addEventListener(MouseEvent.MOUSE_DOWN, function(m) {
+                g.out.addLetter(['color',color]);
+            });
+        }
+    }
 
-        rCar.addEventListener(MouseEvent.MOUSE_DOWN, function(m) {
-            g.out.addLetter(['color','r']);
-        });
+    public function putBack(color: String) {
+        carMap[color].visible = true;
+    }
 
-        oCar.addEventListener(MouseEvent.MOUSE_DOWN, function(m) {
-            g.out.addLetter(['color','o']);
-        });
-
-        yCar.addEventListener(MouseEvent.MOUSE_DOWN, function(m) {
-            g.out.addLetter(['color','y']);
-        });
-
-        gCar.addEventListener(MouseEvent.MOUSE_DOWN, function(m) {
-            g.out.addLetter(['color','g']);
-        });
-
-        bCar.addEventListener(MouseEvent.MOUSE_DOWN, function(m) {
-            g.out.addLetter(['color','b']);
-        });
-
-        iCar.addEventListener(MouseEvent.MOUSE_DOWN, function(m) {
-            g.out.addLetter(['color','i']);
-        });
-
-        vCar.addEventListener(MouseEvent.MOUSE_DOWN, function(m) {
-            g.out.addLetter(['color','v']);
-        });
+    public function pick(color: String) {
+        carMap[color].visible = false;
     }
 
     public function transition() {
-        rCar.x = o_x-c_w+r*(f*0-rp_off).cos();
-        rCar.y = o_y-c_h+r*(f*0-rp_off).sin();
-        oCar.x = o_x-c_w+r*(f*1+op_off).cos();
-        oCar.y = o_y-c_h+r*(f*1+op_off).sin();
-        yCar.x = o_x-c_w+r*(f*2-yp_off).cos();
-        yCar.y = o_y-c_h+r*(f*2-yp_off).sin();
-        gCar.x = o_x-c_w+r*(f*3+gp_off).cos();
-        gCar.y = o_y-c_h+r*(f*3+gp_off).sin();
-        bCar.x = o_x-c_w+r*(f*4-bp_off).cos();
-        bCar.y = o_y-c_h+r*(f*4-bp_off).sin();
-        iCar.x = o_x-c_w+r*(f*5+ip_off).cos();
-        iCar.y = o_y-c_h+r*(f*5+ip_off).sin();
-        vCar.x = o_x-c_w+r*(f*6-vp_off).cos();
-        vCar.y = o_y-c_h+r*(f*6-vp_off).sin();
+        var ns = [0,1,2,3,4,5,6];
 
-        rp_off = (rp_off+Math.PI/100)%(2*Math.PI);
-        op_off = (op_off+Math.PI/114)%(2*Math.PI);
-        yp_off = (yp_off+Math.PI/129)%(2*Math.PI);
-        gp_off = (gp_off+Math.PI/143)%(2*Math.PI);
-        bp_off = (bp_off+Math.PI/157)%(2*Math.PI);
-        ip_off = (ip_off+Math.PI/171)%(2*Math.PI);
-        vp_off = (vp_off+Math.PI/186)%(2*Math.PI);
+        for (car in carMap) {
+            var n = ns.shift();
+            car.x = o_x-c_w+r*(f*n).cos();
+            car.y = o_y-c_h+r*(f*n).sin();
+        }
     }
 }

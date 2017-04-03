@@ -2,7 +2,7 @@ package;
 
 import sys.net.Socket;
 
-using Consts;
+using C;
 using Math;
 using Std;
 using sys.io.File;
@@ -26,16 +26,18 @@ class Player {
     var rollerAnim: Bool;
     var roygbiv = 'roygbiv';
 
-    public function new(g: Globals, user: String, pass: String, s: Socket) {
+    public function new(g: Globals, s: Socket, user: String, pass: String) {
         trace('new Player');
         this.g = g;
+        socket = s;
         this.user = user;
         this.pass = pass;
-        socket = s;
 
         'accounts'.createDirectory();
         if (account().exists()) load();
         else save();
+        sendExp();
+        broadcastLevel();
     }
 
     function account() {
@@ -59,7 +61,6 @@ class Player {
         var serial = account().getContent().serial();
         exp = serial.next();
         level = serial.next();
-        sendExp();
     }
 
     public function save() {
@@ -71,13 +72,15 @@ class Player {
 
     public function init() {
         trace('init');
-        // setColor(roygbiv.charAt(user.length%7));
-        reset();
-        g.out.addLetter(socket,['init']);
-        trace('addLetter(socket,[\'init\'])');
 
+        inform();
+        g.out.addLetter(socket,['init']);
+    }
+
+    function inform() {
         // give player everyone else's data
         informColors();
+        informLevels();
         informLocs();
         informDests();
     }
@@ -121,56 +124,13 @@ class Player {
 
     public function setColor(c: String) {
         trace('$user.color <- $c');
+
         color = c;
         broadcastColor();
     }
 
-    function informColors() {
-        for (p in g.players)
-            g.out.addLetter(socket, ['color',
-                p.getUser(),
-                p.getColor()
-            ]);
-    }
-
-    function informLocs() {
-        for (p in g.players)
-            g.out.addLetter(socket, ['loc',
-                p.getUser(),
-                p.getLoc()
-            ]);
-    }
-
-    function informDests() {
-        for (p in g.players)
-            g.out.addLetter(socket, ['dest',
-                p.getUser(),
-                p.getDest()
-            ]);
-    }
-
-    function broadcastColor() {
-        for (s in g.sockets)
-            g.out.addLetter(s, ['color',
-                user,
-                getColor()
-            ]);
-    }
-
-    function broadcastLoc() {
-        for (s in g.sockets)
-            g.out.addLetter(s, ['loc',
-                user,
-                getLoc()
-            ]);
-    }
-
-    function broadcastDest() {
-        for (s in g.sockets)
-            g.out.addLetter(s, ['dest',
-                user,
-                getDest()
-            ]);
+    public function getLevel() {
+        return level;
     }
 
     public function getLoc() {
@@ -200,7 +160,12 @@ class Player {
     }
 
     function sendExp() {
-        g.out.addLetter(socket,['exp',req(),exp,level]);
+        g.out.addLetter(socket, ['exp',
+            user,
+            req(),
+            exp,
+            level
+        ]);
     }
 
     function req() {
@@ -217,6 +182,7 @@ class Player {
 
         save();
         sendExp();
+        broadcastLevel();
     }
 
     public function rollDie() {
@@ -224,6 +190,82 @@ class Player {
         trace('$user.side <- $side');
         g.out.addLetter(socket,['roll',side]);
         rollerAnim = true;
+    }
+
+    function informLevels() {
+        for (p in g.players)
+            if (p != this)
+                g.out.addLetter(socket, ['level',
+                    p.getUser(),
+                    p.getLevel()
+                ]);
+    }
+
+    function informColors() {
+        for (p in g.players)
+            if (p != this)
+                g.out.addLetter(socket, ['color',
+                    p.getUser(),
+                    p.getColor()
+                ]);
+    }
+
+    function informLocs() {
+        for (p in g.players)
+            if (p != this)
+                g.out.addLetter(socket, ['loc',
+                    p.getUser(),
+                    p.getLoc()
+                ]);
+    }
+
+    function informDests() {
+        for (p in g.players)
+            if (p != this)
+                g.out.addLetter(socket, ['dest',
+                    p.getUser(),
+                    p.getDest()
+                ]);
+    }
+
+    public function broadcastLevel() {
+        for (s in g.sockets)
+            g.out.addLetter(s, ['level',
+                user,
+                getLevel()
+            ]);
+    }
+
+    public function broadcastColor() {
+        for (s in g.sockets)
+            g.out.addLetter(s, ['color',
+                user,
+                getColor()
+            ]);
+    }
+
+    function broadcastLoc() {
+        for (s in g.sockets)
+            g.out.addLetter(s, ['loc',
+                user,
+                getLoc()
+            ]);
+    }
+
+    function broadcastDest() {
+        for (s in g.sockets)
+            g.out.addLetter(s, ['dest',
+                user,
+                getDest()
+            ]);
+    }
+
+    public function broadcastExit() {
+        for (s in g.sockets)
+            if (s != socket)
+                g.out.addLetter(s, ['exit',
+                    user
+                ]);
     }
 
     public function loop(time: Float) {

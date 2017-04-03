@@ -6,7 +6,7 @@ import openfl.display.Tilemap;
 import openfl.display.Tileset;
 import openfl.text.TextField;
 
-using Consts;
+using C;
 using Math;
 using Std;
 
@@ -151,8 +151,8 @@ class Terrain extends Sprite {
     }
 
     public function reset() {
-        g.inGame.visible = false;
-        g.toFromText.text = 'From: ${g.me().getLoc()}\nTo: ${g.me().getDest()}';
-        g.toFrom.visible = true;
+        g.radio.push(g.toFrom);
+        // g.toFromText.text = 'From: ${g.player().getLoc()}\nTo: ${g.player().getDest()}';
+        g.hideOverlay();
     }
 }

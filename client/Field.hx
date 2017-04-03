@@ -3,7 +3,7 @@ package;
 import openfl.display.Sprite;
 import openfl.text.TextField;
 
-using Consts;
+using C;
 using haxe.crypto.Md5;
 using sys.io.File;
 using sys.FileSystem;
@@ -59,7 +59,7 @@ class Field extends Sprite {
             pwd = serial.nextString();
         }
 
-        cacheFile.saveContent(Consts.serialize(
+        cacheFile.saveContent(C.serialize(
             if (f.displayAsPassword && cacheLoaded) [reg,f.text.length,passCache]
             else if (f.displayAsPassword) [reg,size(),f.text.encode()]
             else [f.text,len,pwd]
@@ -124,7 +124,7 @@ class Field extends Sprite {
             reg = serial.nextString();
         }
 
-        cacheFile.saveContent(Consts.serialize([reg,len,pwd]));
+        cacheFile.saveContent(C.serialize([reg,len,pwd]));
     }
 
     public function resetShownCache() {
@@ -140,7 +140,7 @@ class Field extends Sprite {
             pwd = serial.nextString();
         }
 
-        cacheFile.saveContent(Consts.serialize([reg,len,pwd]));
+        cacheFile.saveContent(C.serialize([reg,len,pwd]));
     }
 
     public function getText() {
@@ -178,7 +178,7 @@ class Field extends Sprite {
 
             r.visible = false;
         } else if (t20.length == 1) {
-            l.x = (tE*2).center(Consts.WIDTH/2);
+            l.x = (tE*2).center(C.CENTER_W);
             l.visible = true;
             
             for (m in ms) m.visible = false;
@@ -186,7 +186,7 @@ class Field extends Sprite {
             r.x = l.x+tE;
             r.visible = true;
         } else {
-            l.x = ((tE*2)+tW*(t20.length-1)).center(Consts.WIDTH/2);
+            l.x = ((tE*2)+tW*(t20.length-1)).center(C.CENTER_W);
             l.visible = true;
 
             for (m in ms) m.visible = false;

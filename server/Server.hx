@@ -6,7 +6,7 @@ import openfl.events.Event;
 import sys.net.Host;
 import sys.net.Socket;
 
-using Consts;
+using C;
 using Math;
 using Std;
 using sys.io.File;
@@ -25,7 +25,7 @@ class Server extends Sprite {
 
         addChild('etc/bg.png'.sprite());
 
-        clientCount = new Field(g,Consts.WIDTH/2,Consts.HEIGHT/2);
+        clientCount = new Field(g,C.WIDTH/2,C.HEIGHT/2);
         updateCount();
         addChild(clientCount);
 
@@ -34,7 +34,7 @@ class Server extends Sprite {
         listener.listen(100);
         readers.push(listener);
 
-        addEventListener(Event.ENTER_FRAME, serverLoop);
+        addEventListener(Event.ENTER_FRAME,serverLoop);
     }
 
     function connect(client: Socket) {
@@ -46,9 +46,8 @@ class Server extends Sprite {
     }
 
     function disconnect(client: Socket) {
+        g.removePlayer(client);
         readers.remove(client);
-        g.sockets.remove(client);
-        g.players.remove(client);
         updateCount();
     }
 
@@ -78,14 +77,16 @@ class Server extends Sprite {
 
     function accountInfoArrived(index: Socket, user: String, pass: String) {
         trace('accountInfoArrived');
-        var player = g.players[index] = new Player(g, user, pass, index);
-        player.addCard(g.c1);
-        player.init(); // pass around their to-from
+        g.addPlayer(index, new Player(g,index,user,pass));
+        g.player(index).addCard(g.c1);
+        g.player(index).init(); // pass around their to-from
     }
 
     function colorRequestArrived(index: Socket, color: String) {
         trace('colorRequestArrived');
-        g.player(index).setColor(color);
+        g.player(index).setColor(color);  // (pt 1) bad design; fix later
+        g.player(index).reset();
+        g.player(index).broadcastColor(); // (pt 2) bad design; fix later
     }
 
     function rollRequestArrived(index: Socket) {
@@ -94,21 +95,22 @@ class Server extends Sprite {
     }
 
     var pingFuture: Float;
-    var pingDelay = 2.5;
+    static inline var pingDelay = 2.5;
 
-    // var fpsFuture: Float;
-    // var fps: Int;
+    // var cpsFuture: Float;
+    // var cps: Int;
 
     function serverLoop(e: Event) {
         var time = Timer.stamp();
-        var sockets = readers.select(g.sockets, null, 0);
 
-        // fps++;
-        // if (fpsFuture+1 < time) {
-        //     trace(fps);
-        //     fps=0;
-        //     fpsFuture = time + 1;
+        // cps++;
+        // if (cpsFuture < time) {
+        //     trace(cps);
+        //     cps = 0;
+        //     cpsFuture = time+1;
         // }
+
+        var sockets = readers.select(g.sockets,null,0);
 
         for (client in sockets.read)
             if (client != listener)
@@ -118,17 +120,19 @@ class Server extends Sprite {
                 try connect(client.accept())
                 catch (e: Dynamic) {}
 
-        for (client in sockets.write) {
-            for (letter in g.out)
-                if (letter.sender == client)
-                    try {
-                        client.output.writeString('${letter.body}\r\n');
-                        g.out.remove(letter);
-                    } catch (e: Dynamic) disconnect(client);
+        // one letter every loop
+        if (g.out.length > 0) {
+            var letter = g.out.take();
 
-            // ping every so often
-            if (pingFuture+pingDelay < time) {
-                g.out.addLetter(client, ['`']);
+            try {
+                letter.sender.output.writeString('${letter.body}\r\n');
+            } catch (e: Dynamic) disconnect(letter.sender);
+        }
+
+        // ping every so often
+        if (pingFuture+pingDelay < time) {
+            for (client in sockets.write) {
+                g.out.addLetter(client,['`']);
                 pingFuture = time+pingDelay;
             }
         }
