@@ -92,7 +92,7 @@ class Viewport extends Sprite implements Animatible {
         infoCard.visible = false;
         infoCard.addEventListener(MouseEvent.CLICK, function(m) {
             infoCard.visible = false;
-            g.slideSfx();
+            g.tapSfx();
         });
 
         infoCardText = ''.text(infoCard.width/2,infoCard.height/2,18);
@@ -313,13 +313,13 @@ class Viewport extends Sprite implements Animatible {
                 +'Location: ${pc.getLoc()}\n'
                 +'Destination: ${pc.getDest()}';
             infoCard.visible = true;
-            g.slideSfx();
+            g.tapSfx();
         } else if (pd != null && mdzColor == dest) {
             mdzColor = '';
             var spot = pd.getDest();
             infoCardText.text = '$spot\n\n${paragraphs[spot]}';
             infoCard.visible = true;
-            g.slideSfx();
+            g.tapSfx();
         } else {
             var p1 = m.localX - board.x;
             var p2 = m.localY - board.y;
@@ -331,7 +331,7 @@ class Viewport extends Sprite implements Animatible {
                     var spot = pointToName(p.x,p.y);
                     infoCardText.text = '$spot\n\n${paragraphs[spot]}';
                     infoCard.visible = true;
-                    g.slideSfx();
+                    g.tapSfx();
                 }
         }
     }
@@ -417,7 +417,7 @@ class Viewport extends Sprite implements Animatible {
         world.visible = !world.visible;
 
         mouseHeld = false;
-        g.slideSfx();
+        g.tapSfx();
     }
 
     /* Move the board as much as it can within the boundaries of the screen,

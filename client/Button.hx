@@ -44,6 +44,9 @@ class Button extends Sprite implements IButton {
         shadow.visible = visible = tf;
     }
 
+    public function getW() { return width; }
+    public function getH() { return height; }
+
     public function getX() { return x; }
     public function getY() { return y; }
 

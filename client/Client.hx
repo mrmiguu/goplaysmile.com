@@ -18,12 +18,13 @@ using motion.Actuate;
 class Client extends Game {
     var g = new Globals();
     var loginText: TextField;
-    // var cardText: TextField;
     var connection: Connection;
 
     public function new() {
         super();
 
+        g.stg=stage;
+        g.s=this;
         g.addBackgrounds(this);
 
         scaleY = scaleX = stage.stageWidth.scale(stage.stageHeight);
@@ -45,6 +46,7 @@ class Client extends Game {
         g.radio.add(g.inGame);
 
         g.radio.push(g.login);
+        // g.initBgMouseDown();
 
         addChild(splash);
         splashSfx.play();
@@ -180,14 +182,14 @@ class Client extends Game {
         cardShadow.y = cardShadow.height.center(cardStack.y+cardStack.height/2);
 
         cardStack.addEventListener(MouseEvent.CLICK, function(m) {
-            g.slideSfx();
+            g.tapSfx();
             cardShadow.visible = true;
 
             var card = 'toFrom/${g.player().getLoc()}_${g.player().getDest()}.png'.sprite();
             card.x = card.width.center(C.CENTER_W);
             card.y = cardShadow.y - card.height/3;
             card.addEventListener(MouseEvent.CLICK, function(m) {
-                g.slideSfx();
+                g.tapSfx();
                 g.radio.push(g.inGame);
                 cardShadow.visible = false;
                 card.visible = false;
@@ -198,12 +200,18 @@ class Client extends Game {
         var bagButton = new Button(g,g.toFrom,'toFrom/bag');
         bagButton.setX(bagButton.width.center(C.CENTER_W));
         bagButton.setY(bagButton.height.center(C.HEIGHT/6) + 1.5*C.HEIGHT/3);
-        bagButton.onPop(function() g.radio.push(g.bag));
+        bagButton.onPop(function() {
+            g.radio.push(g.bag);
+            g.setBgMouseDown(back2ToFrom);
+        });
 
         var shopButton = new Button(g,g.toFrom,'toFrom/shop');
         shopButton.setX(shopButton.width.center(C.CENTER_W));
         shopButton.setY(shopButton.height.center(C.HEIGHT/6) + 2*C.HEIGHT/3);
-        shopButton.onPop(function() g.radio.push(g.shop));
+        shopButton.onPop(function() {
+            g.radio.push(g.shop);
+            g.setBgMouseDown(back2ToFrom);
+        });
 
         g.toFrom.addChild(cardStackBacklight);
         g.toFrom.addChild(cardStack);
@@ -213,47 +221,67 @@ class Client extends Game {
         addChild(g.toFrom);
     }
 
+    function back2ToFrom() {
+        g.radio.push(g.toFrom);
+        g.resetBgMouseDown();
+    }
+
+    var item1x: Null<Float>;
+    function resetItem1X(m:MouseEvent) {
+        item1x = null;
+    }
+    function bagSwipe() {
+        trace ("[[ Swiped bag ]]");
+    }
     function bagState() {
-        var panel = 'bag/panel.png'.sprite();
-        panel.anchor__Of('c',this);
+        // var panel = 'bag/panel.png'.sprite();
+        // panel.anchor__Of('c',this);
 
-        var item1 = 'cards/1.png'.sprite();
-        item1.anchor__Of('c',panel);
-        var item1Glow = 'cards/equipped.png'.sprite();
-        item1Glow.mouseEnabled=false;
-        item1Glow.anchor__Of('b',item1);
+        // var item1 = 'cards/1.png'.sprite();
+        // item1.anchor__Of('c',panel);
+        // var item1Glow = 'cards/equipped.png'.sprite();
+        // item1Glow.mouseEnabled=false;
+        // item1Glow.anchor__Of('b',item1);
+        // item1.addEventListener(MouseEvent.MOUSE_DOWN, function(m) {
+        //     item1x = stage.mouseX;
+        // });
+        // stage.addEventListener(MouseEvent.MOUSE_MOVE, function(m) {
+        //     if (item1x==null) return;
+        //     item1.x += stage.mouseX-item1x;
+        //     item1Glow.anchor__Of('b',item1);
+        //     item1x = stage.mouseX;
+        // });
+        // stage.addEventListener(MouseEvent.MOUSE_UP,resetItem1X);
 
-        var item1x: Null<Float>;
-        item1.addEventListener(MouseEvent.MOUSE_DOWN, function(m) {
-            item1x = m.localX;
-        });
-        item1.addEventListener(MouseEvent.MOUSE_MOVE, function(m) {
-            if (item1x==null) return;
-            item1.x += m.localX-item1x;
-            item1Glow.anchor__Of('b',item1);
-            item1x = m.localX;
-        });
-        item1.addEventListener(MouseEvent.MOUSE_UP, function(m) {
-            item1x = null;
-        });
+        // // var item2 = 'paperdoll/headlights_item.png'.sprite();
+        // // item2.anchor__Of('c',panel);
 
-        // var item2 = 'paperdoll/headlights_item.png'.sprite();
-        // item2.anchor__Of('c',panel);
+        // // var item2Glow = 'paperdoll/equipped.png'.sprite();
+        // // item2Glow.mouseEnabled=false;
+        // // item2Glow.anchor__Of('bl',item2);
 
-        // var item2Glow = 'paperdoll/equipped.png'.sprite();
-        // item2Glow.mouseEnabled=false;
-        // item2Glow.anchor__Of('bl',item2);
-
-        g.bag.addChild(panel);
-        g.bag.addChild(item1);
-        g.bag.addChild(item1Glow);
+        // g.bag.addChild(panel);
+        // g.bag.addChild(item1);
+        // g.bag.addChild(item1Glow);
+        // g.bag.addAnimation(new OnSwipe(g,item1,bagSwipe));
         // g.bag.addChild(item2);
         // g.bag.addChild(item2Glow);
+        g.bag = new Inventory(g,'bag');
+        g.bag.reloc('c');
+        g.bag.addCard('1.png');
 
         addChild(g.bag);
     }
 
     function shopState() {
+        g.shop = new Inventory(g,'shop');
+        g.shop.addPaperdoll('headlights_item.png');
+
+        var buy = new Button(g,g.shop,'shop/buy');
+        buy.setX(buy.width.center(C.CENTER_W));
+        buy.setY(buy.height.center(C.CENTER_H*1.5));
+        g.shop.addChild(buy);
+
         addChild(g.shop);
     }
 

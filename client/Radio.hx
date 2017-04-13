@@ -2,7 +2,7 @@ package;
 
 class Radio {
     var radio: Array<IButton>;
-
+    
     public function new(b1: IButton, b2: IButton) {
         radio = [b1, b2];
     }
