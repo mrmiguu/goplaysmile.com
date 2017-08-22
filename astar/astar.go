@@ -1,23 +1,26 @@
-package terrain
+package astar
 
 import (
 	"sort"
 
+	"github.com/mrmiguu/gps_online/c"
 	"github.com/mrmiguu/gps_online/node"
 )
 
-type astar struct {
-	t *T
+// T is the astar type.
+type T struct {
+	diag  float64
+	point func(string) c.XY
 }
 
-/* Instanciates the A* algorithm, passing it a handle to our terrain. */
-func New(t *T) *astar {
-	return &astar{t}
+// New instanciates the A* algorithm, passing it a handle to our terrain.
+func New(diag float64, point func(string) c.XY) *T {
+	return &T{diag, point}
 }
 
-/* The core A* pathfinding algorithm that uses stepping costs and a base
-heuristic function (optimistic) to determine the most optimal path. */
-func (t *astar) Find(start, goal *node.T) {
+// Find is the core A* pathfinding algorithm that uses stepping costs and a base
+// heuristic function (optimistic) to determine the most optimal path.
+func (t *T) Find(start, goal *node.T) []*node.T {
 
 	// the set of nodes already evaluated
 	var closedSet = []*node.T{}
@@ -66,7 +69,7 @@ func (t *astar) Find(start, goal *node.T) {
 			if neighbor.IndexOf(openSet) == -1 { // no neighbor in repeat
 				openSet = append(openSet, neighbor) // discover a new node
 
-				sort.Slice(openSet, func(i, j int) {
+				sort.Slice(openSet, func(i, j int) bool {
 					return fScore[openSet[i]] < fScore[openSet[j]]
 				})
 			} else if tentativeGScore >= gScore[neighbor] { // not a better path
@@ -76,7 +79,7 @@ func (t *astar) Find(start, goal *node.T) {
 			// this path is the best until now. record it!
 			cameFrom[neighbor] = current
 			gScore[neighbor] = tentativeGScore
-			fScore[neighbor] = gScore[neighbor] + t.estimate(neighbor, goal)
+			fScore[neighbor] = float64(gScore[neighbor]) + t.estimate(neighbor, goal)
 		}
 	}
 
@@ -85,17 +88,17 @@ func (t *astar) Find(start, goal *node.T) {
 
 /* The heuristic function to determine value of one node with respect to a
 goal node. It is used in tandem with a greedy function/value. */
-func (t *astar) estimate(start, goal *node.T) float64 {
+func (t *T) estimate(start, goal *node.T) float64 {
 
-	var a = t.t.Point(start.id)
-	var b = t.t.Point(goal.id)
+	var a = t.point(start.ID)
+	var b = t.point(goal.ID)
 
-	return c.Dist(a.x, a.y, b.x, b.y) / t.t.Diag
+	return c.Dist(a.X, a.Y, b.X, b.Y) / t.diag
 }
 
 /* Given a path from one node to another and a current position at the goal
 node, the pathway is unwound and emptied into a path list. */
-func (t *astar) reconstructPath(cameFrom map[*node.T]*node.T, current *node.T) {
+func (t *T) reconstructPath(cameFrom map[*node.T]*node.T, current *node.T) []*node.T {
 	var path = []*node.T{current}
 
 	_, exists := cameFrom[current]

@@ -1,21 +1,29 @@
 package c
 
 import (
+	"errors"
+	"image"
+	"image/color"
+
+	// read .png files
+	_ "image/png"
+
 	"math"
+	"os"
+	"strings"
 )
 
-type Sockets []*socket.T
+// type Sockets []*socket.T
 type Tokens []interface{}
 type Letter struct {
-	Sender *socket.T
-	Body   string
+	// Sender *socket.T
+	Body string
 }
 type Mailbox []Letter
 
 const (
-	WIDTH      = 800
-	HEIGHT     = 480
-	FONT_COLOR = 0x7F0000
+	WIDTH  = 800
+	HEIGHT = 480
 )
 
 type XY struct {
@@ -64,7 +72,7 @@ func Diff(a float64, b float64) float64 {
 
 // Dist is a straight line between two points.
 func Dist(ax, ay, bx, by int) float64 {
-	return math.Sqrt(math.Pow(bx-ax, 2) + math.Pow(by-ay, 2))
+	return math.Sqrt(math.Pow(float64(bx-ax), 2) + math.Pow(float64(by-ay), 2))
 }
 
 // Scale is a proper-fitting ratio is returned to resize appropriately.
@@ -82,10 +90,22 @@ func Scale(w, h int) int {
 //     return ('assets/${dir}').fromFile()
 // }
 
-// Quickly returns bitmap data.
-// func Bmp(dir string) {
-//     return ('assets/${dir}').getBitmapData()
-// }
+// Bmp quickly returns bitmap data.
+func Bmp(dir string) (image.Image, error) {
+	if !strings.Contains(dir, ".png") {
+		return nil, errors.New("no PNG file type found")
+	}
+	f, err := os.Open("assets/" + dir)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	i, _, err := image.Decode(f)
+	if err != nil {
+		return nil, err
+	}
+	return i, nil
+}
 
 // Creates a tileset.
 // func Tileset(dir string) {
@@ -126,36 +146,43 @@ func Scale(w, h int) int {
 // }
 
 // Sprite wraps a tilemap from a file in a sprite.
-func Sprite(dir string, xAndY ...int) {
-	var sprite = MapToSprite(Tilemap(dir))
-	if len(xAndY) > 0 {
-		sprite.x = xAndY[0]
-	}
-	if len(xAndY) > 1 {
-		sprite.y = xAndY[1]
-	}
+// func Sprite(dir string, xAndY ...int) {
+// 	var sprite = MapToSprite(Tilemap(dir))
+// 	if len(xAndY) > 0 {
+// 		sprite.x = xAndY[0]
+// 	}
+// 	if len(xAndY) > 1 {
+// 		sprite.y = xAndY[1]
+// 	}
 
-	return sprite
-}
+// 	return sprite
+// }
 
 // Center centers a line on a given point.
 func Center(line, point float64) float64 {
 	return point - line/2
 }
 
-// Code by Jason Lin © 2014.
-func Locations(image BitmapData) []XY {
+func Abs(i int) int {
+	return int(math.Abs(float64(i)))
+}
+
+// Locations was written by Jason Lin © 2014.
+func Locations(img image.Image) []XY {
 	var points = []XY{}
 	var cenX = 12
 	var cenY = 13
 	var halfCenY = cenY / 2
-	var color = 0xFF0000
 
-	for j := range make([]int, image.height) {
-		for i := range make([]int, image.width) {
+	clr := color.RGBA{R: 255}
+	wh := img.Bounds().Size()
+	w, h := wh.X, wh.Y
+
+	for j := range make([]int, h) {
+		for i := range make([]int, w) {
 			var newLoc = true
 
-			if image.GetPixel(i, j) != color {
+			if img.At(i, j) != clr {
 				continue
 			}
 
@@ -165,7 +192,7 @@ func Locations(image BitmapData) []XY {
 			}
 
 			for _, p := range points {
-				if (p.X-i).abs() <= cenX && (p.Y-j).abs() <= cenY {
+				if Abs(p.X-i) <= cenX && Abs(p.Y-j) <= cenY {
 					newLoc = false
 				}
 			}

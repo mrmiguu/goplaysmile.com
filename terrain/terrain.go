@@ -2,9 +2,11 @@ package terrain
 
 import (
 	"github.com/mrmiguu/gps_online/astar"
+	"github.com/mrmiguu/gps_online/c"
 	"github.com/mrmiguu/gps_online/node"
 )
 
+// T is the terrain type.
 type T struct {
 	anaheim,
 	azusa,
@@ -67,7 +69,7 @@ type T struct {
 	yorbalinda *node.T
 
 	Diag  float64
-	AStar *astar
+	AStar *astar.T
 	Pairs [][]*node.T
 	Map   map[string]*node.T
 
@@ -75,6 +77,7 @@ type T struct {
 	nodeNames  []string
 }
 
+// New creates a new terrain object.
 func New() *T {
 	t := &T{
 		nodePoints: c.Locations(c.Bmp("etc/map.png")),
@@ -96,7 +99,7 @@ func New() *T {
 	}
 
 	// prepare the game-specific info for A*
-	t.AStar = astar.New(this)
+	t.AStar = astar.New(t.Diag, t.Point)
 
 	// instanciate all nodes
 	t.anaheim = node.New("anaheim", []int{5})
