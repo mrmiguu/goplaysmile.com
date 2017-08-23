@@ -86,8 +86,8 @@ func (t *T) Find(start, goal *node.T) []*node.T {
 	return []*node.T{start}
 }
 
-/* The heuristic function to determine value of one node with respect to a
-goal node. It is used in tandem with a greedy function/value. */
+// The heuristic function to determine value of one node with respect to a
+// goal node. It is used in tandem with a greedy function/value.
 func (t *T) estimate(start, goal *node.T) float64 {
 
 	var a = t.point(start.ID)
@@ -96,8 +96,8 @@ func (t *T) estimate(start, goal *node.T) float64 {
 	return c.Dist(a.X, a.Y, b.X, b.Y) / t.diag
 }
 
-/* Given a path from one node to another and a current position at the goal
-node, the pathway is unwound and emptied into a path list. */
+// Given a path from one node to another and a current position at the goal
+// node, the pathway is unwound and emptied into a path list.
 func (t *T) reconstructPath(cameFrom map[*node.T]*node.T, current *node.T) []*node.T {
 	var path = []*node.T{current}
 

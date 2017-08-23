@@ -1,5 +1,7 @@
 package card
 
+import "github.com/mrmiguu/gps_online/player"
+
 type f func(*player.T)
 
 type T struct {

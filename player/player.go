@@ -31,9 +31,12 @@ func New(g *globals.T, s *socket.T, user, pass string) *T {
     }
 
     "accounts".createDirectory()
-    if (account().exists()) load()
-    else save()
-    sendExp()
+    if t.account().exists() {
+        t.Load()
+    } else {
+        t.Save()
+    }
+    t.sendExp()
     broadcastLevel()
 
     return t
