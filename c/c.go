@@ -13,10 +13,10 @@ import (
 	"strings"
 )
 
-// type Sockets []*socket.T
+// type Sockets []*socket.Socket
 type Tokens []interface{}
 type Letter struct {
-	// Sender *socket.T
+	// Sender *socket.Socket
 	Body string
 }
 type Mailbox []Letter
@@ -35,7 +35,7 @@ type XY struct {
 // 	return m.shift()
 // }
 
-// func AddLetter(m Mailbox, s *socket.T, t Tokens) {
+// func AddLetter(m Mailbox, s *socket.Socket, t Tokens) {
 // 	var serial = new Serializer()
 
 // 	for (token in t)

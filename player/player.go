@@ -1,17 +1,17 @@
 package player
 
-type T struct {
-    g *globals.T
+type Player struct {
+    g *globals.Globals
     user string
     pass string
     color string
-    path []*node.T
+    path []*node.Node
     cur int
-    card *card.T
-    cards  []*card.T
+    card *card.Card
+    cards  []*card.Card
     level int
     exp int
-    socket *socket.T
+    socket *socket.Socket
     side int
     roller int
     rollerFuture float64
@@ -19,9 +19,9 @@ type T struct {
     roygbiv string
 }
 
-func New(g *globals.T, s *socket.T, user, pass string) *T {
+func New(g *globals.Globals, s *socket.Socket, user, pass string) *Player {
     fmt.Println("new Player")
-    t := &T{
+    t := &Player{
         g: g,
         socket: s,
         user: user,
@@ -42,45 +42,45 @@ func New(g *globals.T, s *socket.T, user, pass string) *T {
     return t
 }
 
-func (t *T) account() string {
+func (t *Player) account() string {
     return "accounts/"+t.user+"@"+t.pass
 }
 
-func (t *T) OnGoal() bool {
+func (t *Player) OnGoal() bool {
     return t.cur == len(t.path)-1
 }
 
-func (t *T) AddCard(c *card.T) {
+func (t *Player) AddCard(c *card.Card) {
     fmt.Println("addCard")
     // if no card, also equip
     if (cards.length == 0) card = c
     cards.push(c)
 }
 
-func (t *T) EquipCard(c *card.T) {
+func (t *Player) EquipCard(c *card.Card) {
     if (cards.indexOf(c) != -1) card = c
 }
 
-func (t *T) Load() {
+func (t *Player) Load() {
     var serial = account().getContent().serial()
     exp = serial.next()
     level = serial.next()
 }
-func (t *T) Save() {
+func (t *Player) Save() {
     account().saveContent([
         exp,
         level
     ].serialize())
 }
 
-func (t *T) Init() {
+func (t *Player) Init() {
     fmt.Println("init")
 
     inform()
     g.out.addLetter(socket,["init"])
 }
 
-func (t *T) inform() {
+func (t *Player) inform() {
     // give player everyone else"s data
     informColors()
     informLevels()
@@ -88,7 +88,7 @@ func (t *T) inform() {
     informDests()
 }
 
-func (t *T) Reset() {
+func (t *Player) Reset() {
     fmt.Println("reset")
     // set the src node to something
     // random in the src-dst list while
@@ -107,62 +107,62 @@ func (t *T) Reset() {
     broadcastDest()
 }
 
-func (t *T) On(hwy int) {
+func (t *Player) On(hwy int) {
     fmt.Println("on")
     return path[cur].hwys.indexOf(hwy) != -1
 }
 
-func (t *T) Go(n int){
+func (t *Player) Go(n int){
     fmt.Println("go")
     setCur(if (cur + n >= path.length) path.length - 1 else cur + n)
 }
 
-func (t *T) GetUser() {
+func (t *Player) GetUser() {
     return user
 }
 
-func (t *T) GetColor() {
+func (t *Player) GetColor() {
     return color
 }
 
-func (t *T) SetColor(c string) {
+func (t *Player) SetColor(c string) {
     fmt.Println("$user.color <- $c")
 
     color = c
     broadcastColor()
 }
 
-func (t *T) GetLevel() {
+func (t *Player) GetLevel() {
     return level
 }
 
-func (t *T) GetLoc() {
+func (t *Player) GetLoc() {
     return path[cur].id
 }
 
-func (t *T) GetDest() {
+func (t *Player) GetDest() {
     return path[path.length-1].id
 }
 
-func (t *T) To(city string) {
+func (t *Player) To(city string) {
     fmt.Println("to")
     refine(g.t.map[city], g.t.map[getDest()])
 }
 
-func (t *T) refine(start node.T, end node.T) {
+func (t *Player) refine(start node.Node, end node.Node) {
     fmt.Println("refine")
     // find new path from city to the goal
     path = g.t.aStar.find(start, end)
     setCur(0)
 }
 
-func (t *T) setCur(n int) {
+func (t *Player) setCur(n int) {
     cur = n
     fmt.Println("$user.loc <- ${getLoc()}")
     broadcastLoc()
 }
 
-func (t *T) sendExp() {
+func (t *Player) sendExp() {
     g.out.addLetter(socket, ["exp",
         user,
         req(),
@@ -171,11 +171,11 @@ func (t *T) sendExp() {
     ])
 }
 
-func (t *T) req() int {
+func (t *Player) req() int {
     return (1.1.pow(level) + 1.95).int() * level
 }
 
-func (t *T) increaseExp() {
+func (t *Player) increaseExp() {
     fmt.Println("increaseExp")
 
     exp = (exp + 1) % req()
@@ -188,14 +188,14 @@ func (t *T) increaseExp() {
     broadcastLevel()
 }
 
-func (t *T) RollDie() {
+func (t *Player) RollDie() {
     side = 6.random()
     fmt.Println("$user.side <- $side")
     g.out.addLetter(socket,["roll",side])
     rollerAnim = true
 }
 
-func (t *T) informLevels() {
+func (t *Player) informLevels() {
     for (p in g.players)
         if (p != this)
             g.out.addLetter(socket, ["level",
@@ -204,7 +204,7 @@ func (t *T) informLevels() {
             ])
 }
 
-func (t *T) informColors() {
+func (t *Player) informColors() {
     for (p in g.players)
         if (p != this)
             g.out.addLetter(socket, ["color",
@@ -213,7 +213,7 @@ func (t *T) informColors() {
             ])
 }
 
-func (t *T) informLocs() {
+func (t *Player) informLocs() {
     for (p in g.players)
         if (p != this)
             g.out.addLetter(socket, ["loc",
@@ -222,7 +222,7 @@ func (t *T) informLocs() {
             ])
 }
 
-func (t *T) informDests() {
+func (t *Player) informDests() {
     for (p in g.players)
         if (p != this)
             g.out.addLetter(socket, ["dest",
@@ -231,7 +231,7 @@ func (t *T) informDests() {
             ])
 }
 
-func (t *T) BroadcastLevel() {
+func (t *Player) BroadcastLevel() {
     for (s in g.sockets)
         g.out.addLetter(s, ["level",
             user,
@@ -239,7 +239,7 @@ func (t *T) BroadcastLevel() {
         ])
 }
 
-func (t *T) BroadcastColor() {
+func (t *Player) BroadcastColor() {
     for (s in g.sockets)
         g.out.addLetter(s, ["color",
             user,
@@ -247,7 +247,7 @@ func (t *T) BroadcastColor() {
         ])
 }
 
-func (t *T) broadcastLoc() {
+func (t *Player) broadcastLoc() {
     for (s in g.sockets)
         g.out.addLetter(s, ["loc",
             user,
@@ -255,7 +255,7 @@ func (t *T) broadcastLoc() {
         ])
 }
 
-func (t *T) broadcastDest() {
+func (t *Player) broadcastDest() {
     for (s in g.sockets)
         g.out.addLetter(s, ["dest",
             user,
@@ -263,7 +263,7 @@ func (t *T) broadcastDest() {
         ])
 }
 
-func (t *T) BroadcastExit() {
+func (t *Player) BroadcastExit() {
     for (s in g.sockets)
         if (s != socket)
             g.out.addLetter(s, ["exit",
@@ -271,7 +271,7 @@ func (t *T) BroadcastExit() {
             ])
 }
 
-func (t *T) Loop(time float64) {
+func (t *Player) Loop(time float64) {
     if (rollerAnim && rollerFuture < time) {
         // fmt.Println("roller=$roller")
         if (roller == side) {

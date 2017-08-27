@@ -1,18 +1,18 @@
 package node
 
-type T struct {
-	List []*T
+type Node struct {
+	List []*Node
 	Hwys []int
 	ID   string
 }
 
-func New(id string, hwys []int) *T {
-	return &T{ID: id, Hwys: hwys}
+func New(id string, hwys []int) *Node {
+	return &Node{ID: id, Hwys: hwys}
 }
 
-func (t *T) IndexOf(ts []*T) int {
+func (n *Node) IndexOf(ts []*Node) int {
 	for i, dt := range ts {
-		if dt != t {
+		if dt != n {
 			continue
 		}
 		return i

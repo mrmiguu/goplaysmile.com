@@ -6,8 +6,8 @@ import (
 	"github.com/mrmiguu/gps_online/node"
 )
 
-// T is the terrain type.
-type T struct {
+// Terrain is the terrain type.
+type Terrain struct {
 	anaheim,
 	azusa,
 	bellflower,
@@ -66,20 +66,20 @@ type T struct {
 	watts,
 	westcovina,
 	westminster,
-	yorbalinda *node.T
+	yorbalinda *node.Node
 
 	Diag  float64
-	AStar *astar.T
-	Pairs [][]*node.T
-	Map   map[string]*node.T
+	AStar *astar.Astar
+	Pairs [][]*node.Node
+	Map   map[string]*node.Node
 
 	nodePoints c.XY
 	nodeNames  []string
 }
 
 // New creates a new terrain object.
-func New() *T {
-	t := &T{
+func New() *Terrain {
+	t := &Terrain{
 		nodePoints: c.Locations(c.Bmp("etc/map.png")),
 		nodeNames: []string{
 			"santaclarita", "sanfernando", "lakeviewterrace", "sunland", "panoramacity",
@@ -162,7 +162,7 @@ func New() *T {
 	t.westminster = node.New("westminster", []int{22, 405})
 	t.yorbalinda = node.New("yorbalinda", []int{55, 91})
 
-	t.Map = map[string]*node.T{
+	t.Map = map[string]*node.Node{
 		"anaheim": t.anaheim, "azusa": t.azusa, "bellflower": t.bellflower,
 		"beverlyhills": t.beverlyhills, "brea": t.brea,
 		"buenapark": t.buenapark, "burbank": t.burbank,
@@ -194,7 +194,7 @@ func New() *T {
 	}
 
 	// source/destination pairs
-	t.Pairs = [][]*node.T{
+	t.Pairs = [][]*node.Node{
 		{t.claremont, t.santaana},
 		{t.sanfernando, t.yorbalinda},
 		{t.carson, t.pomona},
@@ -209,70 +209,70 @@ func New() *T {
 		{t.elmonte, t.sanpedr},
 	}
 
-	anaheim.List = []*node.T{buenapark, gardengrove}
-	azusa.List = []*node.T{sandimas, highlandpark, elmonte}
-	bellflower.List = []*node.T{compton, santafesprings, buenapark, cypress}
-	beverlyhills.List = []*node.T{usc, losangeles, studiocity, burbank, glendale, commerce, santafesprings, lynwood}
-	brea.List = []*node.T{diamondbar, fullerton}
-	buenapark.List = []*node.T{bellflower, santafesprings, anaheim, fullerton}
-	burbank.List = []*node.T{panoramacity, studiocity, glendale, losangeles, beverlyhills}
-	calpoly.List = []*node.T{westcovina, diamondbar, pomona, sandimas}
-	carson.List = []*node.T{torrance, dominguezhills, sanpedro, northlongbeach, westminster, longbeach}
-	chinohills.List = []*node.T{diamondbar}
-	cityofindustry.List = []*node.T{southelmonte, diamondbar}
-	claremont.List = []*node.T{sandimas}
-	commerce.List = []*node.T{montereypark, southelmonte, usc, lynwood, santafesprings, losangeles, beverlyhills}
-	compton.List = []*node.T{lynwood, gardena, northlongbeach, bellflower}
-	corona.List = []*node.T{yorbalinda}
-	culvercity.List = []*node.T{santamonica, usc, vannuys, lax}
-	cypress.List = []*node.T{gardengrove, bellflower, westminster, fountainvalley, huntingtonbeach}
-	diamondbar.List = []*node.T{calpoly, chinohills, cityofindustry, brea}
-	dominguezhills.List = []*node.T{gardena, carson}
-	elmonte.List = []*node.T{rosemead, westcovina, azusa, southelmonte}
-	fountainvalley.List = []*node.T{westminster, santaana, gardengrove, huntingtonbeach, cypress}
-	fullerton.List = []*node.T{buenapark, brea, yorbalinda, gardengrove}
-	gardena.List = []*node.T{watts, compton, hawthorne, dominguezhills}
-	gardengrove.List = []*node.T{cypress, westminster, orange, santaana, fullerton, anaheim, fountainvalley, huntingtonbeach}
-	glendale.List = []*node.T{azusa, pasadena, lacanada, burbank, losangeles, highlandpark, beverlyhills}
-	hawthorne.List = []*node.T{lax, gardena, torrance}
-	highlandpark.List = []*node.T{azusa, losangeles, glendale, lacanada}
-	huntingtonbeach.List = []*node.T{westminster, cypress, gardengrove, fountainvalley}
-	lacanada.List = []*node.T{sunland, glendale, highlandpark}
-	lakeviewterrace.List = []*node.T{santaclarita, sunland}
-	lax.List = []*node.T{culvercity, watts, hawthorne}
-	longbeach.List = []*node.T{northlongbeach, westminster, carson}
-	losangeles.List = []*node.T{burbank, beverlyhills, usc, highlandpark, glendale, montereypark, commerce, santafesprings, lynwood}
-	lynwood.List = []*node.T{watts, compton, commerce, santafesprings, usc, beverlyhills, losangeles}
-	montereypark.List = []*node.T{losangeles, commerce, rosemead}
-	northlongbeach.List = []*node.T{carson, compton, westminster, longbeach}
-	orange.List = []*node.T{yorbalinda, gardengrove, santaana}
-	palosverdes.List = []*node.T{torrance}
-	panoramacity.List = []*node.T{sanfernando, studiocity, burbank}
-	pasadena.List = []*node.T{highlandpark}
-	pomona.List = []*node.T{westcovina, calpoly, sandimas}
-	rosemead.List = []*node.T{montereypark, elmonte}
-	sandimas.List = []*node.T{azusa, claremont, westcovina, pomona, calpoly}
-	sanfernando.List = []*node.T{santaclarita, panoramacity, vannuys}
-	sanpedro.List = []*node.T{carson}
-	santaana.List = []*node.T{orange, gardengrove, fountainvalley}
-	santaclarita.List = []*node.T{sanfernando, lakeviewterrace}
-	santafesprings.List = []*node.T{southelmonte, buenapark, bellflower, commerce, losangeles, beverlyhills, usc, lynwood}
-	santamonica.List = []*node.T{culvercity}
-	southelmonte.List = []*node.T{commerce, santafesprings, cityofindustry, elmonte}
-	studiocity.List = []*node.T{vannuys, panoramacity, burbank, beverlyhills}
-	sunland.List = []*node.T{lacanada, lakeviewterrace}
-	torrance.List = []*node.T{hawthorne, carson, palosverdes}
-	usc.List = []*node.T{commerce, losangeles, beverlyhills, watts, culvercity, lynwood, santafesprings}
-	vannuys.List = []*node.T{sanfernando, studiocity, culvercity}
-	watts.List = []*node.T{usc, lax, lynwood, gardena}
-	westcovina.List = []*node.T{elmonte, sandimas, pomona, calpoly}
-	westminster.List = []*node.T{carson, longbeach, northlongbeach, cypress, huntingtonbeach, gardengrove, fountainvalley}
-	yorbalinda.List = []*node.T{fullerton, corona, orange}
+	anaheim.List = []*node.Node{buenapark, gardengrove}
+	azusa.List = []*node.Node{sandimas, highlandpark, elmonte}
+	bellflower.List = []*node.Node{compton, santafesprings, buenapark, cypress}
+	beverlyhills.List = []*node.Node{usc, losangeles, studiocity, burbank, glendale, commerce, santafesprings, lynwood}
+	brea.List = []*node.Node{diamondbar, fullerton}
+	buenapark.List = []*node.Node{bellflower, santafesprings, anaheim, fullerton}
+	burbank.List = []*node.Node{panoramacity, studiocity, glendale, losangeles, beverlyhills}
+	calpoly.List = []*node.Node{westcovina, diamondbar, pomona, sandimas}
+	carson.List = []*node.Node{torrance, dominguezhills, sanpedro, northlongbeach, westminster, longbeach}
+	chinohills.List = []*node.Node{diamondbar}
+	cityofindustry.List = []*node.Node{southelmonte, diamondbar}
+	claremont.List = []*node.Node{sandimas}
+	commerce.List = []*node.Node{montereypark, southelmonte, usc, lynwood, santafesprings, losangeles, beverlyhills}
+	compton.List = []*node.Node{lynwood, gardena, northlongbeach, bellflower}
+	corona.List = []*node.Node{yorbalinda}
+	culvercity.List = []*node.Node{santamonica, usc, vannuys, lax}
+	cypress.List = []*node.Node{gardengrove, bellflower, westminster, fountainvalley, huntingtonbeach}
+	diamondbar.List = []*node.Node{calpoly, chinohills, cityofindustry, brea}
+	dominguezhills.List = []*node.Node{gardena, carson}
+	elmonte.List = []*node.Node{rosemead, westcovina, azusa, southelmonte}
+	fountainvalley.List = []*node.Node{westminster, santaana, gardengrove, huntingtonbeach, cypress}
+	fullerton.List = []*node.Node{buenapark, brea, yorbalinda, gardengrove}
+	gardena.List = []*node.Node{watts, compton, hawthorne, dominguezhills}
+	gardengrove.List = []*node.Node{cypress, westminster, orange, santaana, fullerton, anaheim, fountainvalley, huntingtonbeach}
+	glendale.List = []*node.Node{azusa, pasadena, lacanada, burbank, losangeles, highlandpark, beverlyhills}
+	hawthorne.List = []*node.Node{lax, gardena, torrance}
+	highlandpark.List = []*node.Node{azusa, losangeles, glendale, lacanada}
+	huntingtonbeach.List = []*node.Node{westminster, cypress, gardengrove, fountainvalley}
+	lacanada.List = []*node.Node{sunland, glendale, highlandpark}
+	lakeviewterrace.List = []*node.Node{santaclarita, sunland}
+	lax.List = []*node.Node{culvercity, watts, hawthorne}
+	longbeach.List = []*node.Node{northlongbeach, westminster, carson}
+	losangeles.List = []*node.Node{burbank, beverlyhills, usc, highlandpark, glendale, montereypark, commerce, santafesprings, lynwood}
+	lynwood.List = []*node.Node{watts, compton, commerce, santafesprings, usc, beverlyhills, losangeles}
+	montereypark.List = []*node.Node{losangeles, commerce, rosemead}
+	northlongbeach.List = []*node.Node{carson, compton, westminster, longbeach}
+	orange.List = []*node.Node{yorbalinda, gardengrove, santaana}
+	palosverdes.List = []*node.Node{torrance}
+	panoramacity.List = []*node.Node{sanfernando, studiocity, burbank}
+	pasadena.List = []*node.Node{highlandpark}
+	pomona.List = []*node.Node{westcovina, calpoly, sandimas}
+	rosemead.List = []*node.Node{montereypark, elmonte}
+	sandimas.List = []*node.Node{azusa, claremont, westcovina, pomona, calpoly}
+	sanfernando.List = []*node.Node{santaclarita, panoramacity, vannuys}
+	sanpedro.List = []*node.Node{carson}
+	santaana.List = []*node.Node{orange, gardengrove, fountainvalley}
+	santaclarita.List = []*node.Node{sanfernando, lakeviewterrace}
+	santafesprings.List = []*node.Node{southelmonte, buenapark, bellflower, commerce, losangeles, beverlyhills, usc, lynwood}
+	santamonica.List = []*node.Node{culvercity}
+	southelmonte.List = []*node.Node{commerce, santafesprings, cityofindustry, elmonte}
+	studiocity.List = []*node.Node{vannuys, panoramacity, burbank, beverlyhills}
+	sunland.List = []*node.Node{lacanada, lakeviewterrace}
+	torrance.List = []*node.Node{hawthorne, carson, palosverdes}
+	usc.List = []*node.Node{commerce, losangeles, beverlyhills, watts, culvercity, lynwood, santafesprings}
+	vannuys.List = []*node.Node{sanfernando, studiocity, culvercity}
+	watts.List = []*node.Node{usc, lax, lynwood, gardena}
+	westcovina.List = []*node.Node{elmonte, sandimas, pomona, calpoly}
+	westminster.List = []*node.Node{carson, longbeach, northlongbeach, cypress, huntingtonbeach, gardengrove, fountainvalley}
+	yorbalinda.List = []*node.Node{fullerton, corona, orange}
 
 	return t
 }
 
 // Point pulls the point of a node from the loc array.
-func (t *T) Point(id string) c.XY {
+func (t *Terrain) Point(id string) c.XY {
 	return t.nodePoints[c.NameToIndex(id, nodeNames)]
 }

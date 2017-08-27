@@ -1,13 +1,13 @@
 package server
 
-type T struct {
-    g *globals.T
-    listener socket.T
-    readers []socket.T
+type Server struct {
+    g *globals.Globals
+    listener socket.Socket
+    readers []socket.Socket
 }
 
-func New() *T {
-    t := &T{}
+func New() *Server {
+    t := &Server{}
 
     listener.setBlocking(false)
     listener.bind(new Host("192.168.1.152"), 4200)
@@ -18,19 +18,19 @@ func New() *T {
     return t
 }
 
-func connect(client socket.T) {
+func connect(client socket.Socket) {
     client.setFastSend(true)
     client.setBlocking(false)
     readers.push(client)
     g.sockets.push(client)
 }
 
-func disconnect(client socket.T) {
+func disconnect(client socket.Socket) {
     g.removePlayer(client)
     readers.remove(client)
 }
 
-func read(index socket.T, packet string) {
+func read(index socket.Socket, packet string) {
     var serial = packet.serial()
 
     switch (serial.nextString()) {
@@ -50,21 +50,21 @@ func read(index socket.T, packet string) {
     }
 }
 
-func accountInfoArrived(index socket.T, user string, pass string) {
+func accountInfoArrived(index socket.Socket, user string, pass string) {
     trace("accountInfoArrived")
     g.addPlayer(index, new Player(g,index,user,pass))
     g.player(index).addCard(g.c1)
     g.player(index).init() // pass around their to-from
 }
 
-func colorRequestArrived(index socket.T, color string) {
+func colorRequestArrived(index socket.Socket, color string) {
     trace("colorRequestArrived")
     g.player(index).setColor(color)    // (pt 1) bad design fix later
     g.player(index).reset()
     g.player(index).broadcastColor() // (pt 2) bad design fix later
 }
 
-func rollRequestArrived(index socket.T) {
+func rollRequestArrived(index socket.Socket) {
     trace("rollRequestArrived")
     g.player(index).rollDie()
 }
