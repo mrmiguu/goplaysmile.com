@@ -7,27 +7,25 @@ import (
 )
 
 func init() {
-	dxweb.Width = 450
-	dxweb.Height = 800
+	dxweb.Width = 750
+	dxweb.Height = 1100
+	dxweb.HitSound = "assets/hit.wav"
 	sock.Addr = "47.148.135.216:4200"
 }
 
 func main() {
-	bgld := dxweb.LoadImage("assets/etc/bg.png", dxweb.Width, dxweb.Height)
-	lgnld := dxweb.LoadImage("assets/login-btn.png", dxweb.Width, 277)
-	gpsld := dxweb.LoadImage("assets/gps-start.png", dxweb.Width, dxweb.Height)
-	splashld := dxweb.LoadImage("assets/etc/splash.png", dxweb.Width, dxweb.Height)
+	bgld := dxweb.LoadImage("assets/bg.png")
+	lgnld := dxweb.LoadImage("assets/login-btn.png")
+	gpsld := dxweb.LoadImage("assets/gps-start.png")
+	splashld := dxweb.LoadImage("assets/splash.png")
+	inputbgld := dxweb.LoadImage("assets/inputbg.png")
 
 	splash := <-splashld
 	splash.Show(true, 2500)
-	go func() {
-		for range splash.Hit {
-			println("splash.Hit")
-		}
-	}()
-	go splash.Show(false, 1500)
-
 	gps := <-gpsld
+	gps.Show(true)
+	go splash.Show(false)
+
 	bg := <-bgld
 	lgn := <-lgnld
 
@@ -35,24 +33,41 @@ func main() {
 	x, _ := lgn.Pos()
 	lgn.Move(x, height/2)
 
-	gps.Show(true)
 	bg.Show(true)
 	lgn.Show(true)
 
 	<-gps.Hit
 	input := jsutil.OpenKeyboard()
-	go gps.Show(false, 500)
+	go gps.Show(false, 125)
+
+	typed := dxweb.NewText("Enter a username")
+	x, _ = typed.Pos()
+	inputy := height + height/2
+	inputbg := <-inputbgld
+	inputbg.Move(x, inputy)
+	typed.Move(x, inputy)
+	go inputbg.Show(true, 100)
+	go typed.Resize(84, 100)
+	typed.Show(true, 100)
 
 	username := sock.Wstring()
-	go func() {
-		var text string
-		for txt := range input {
-			text = txt
+readKeys:
+	for {
+		select {
+		case <-lgn.Hit:
+			username <- typed.Get()
+			_, height = lgn.Size()
+			x, _ = lgn.Pos()
+			go lgn.Move(x, -height/2, 125)
+			lgn.Show(false, 125)
+			break readKeys
+		case txt := <-input:
+			typed.Set(txt)
 		}
-		username <- text
-	}()
-	<-lgn.Hit
+	}
 	jsutil.CloseKeyboard()
+
+	println("[LOGGED IN]")
 
 	select {}
 }
