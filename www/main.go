@@ -9,13 +9,13 @@ import (
 func init() {
 	dxweb.Width = 750
 	dxweb.Height = 1100
-	dxweb.HitSound = "assets/hit.wav"
-	sock.Addr = "47.148.135.216:4200"
+	sock.Addr = "47.148.135.216"
 }
 
 func main() {
 	bgld := dxweb.LoadImage("assets/bg.png")
 	lgnld := dxweb.LoadImage("assets/login-btn.png")
+	hitld := dxweb.LoadSound("assets/hit.wav")
 	gpsld := dxweb.LoadImage("assets/gps-start.png")
 	splashld := dxweb.LoadImage("assets/splash.png")
 	inputbgld := dxweb.LoadImage("assets/inputbg.png")
@@ -36,8 +36,10 @@ func main() {
 	bg.Show(true)
 	lgn.Show(true)
 
+	hit := <-hitld
 	<-gps.Hit
 	input := jsutil.OpenKeyboard()
+	hit.Play()
 	go gps.Show(false, 125)
 
 	typed := dxweb.NewText("Enter a username")
@@ -46,28 +48,38 @@ func main() {
 	inputbg := <-inputbgld
 	inputbg.Move(x, inputy)
 	typed.Move(x, inputy)
+	go func() {
+		for {
+			select {
+			case <-inputbg.Hit:
+			case <-typed.Hit:
+			}
+			jsutil.OpenKeyboard()
+		}
+	}()
 	go inputbg.Show(true, 100)
 	go typed.Resize(84, 100)
 	typed.Show(true, 100)
 
-	username := sock.Wstring()
+	Name := sock.Wstring()
 readKeys:
 	for {
 		select {
 		case <-lgn.Hit:
-			username <- typed.Get()
+			hit.Play()
+			Name <- typed.Get()
 			_, height = lgn.Size()
 			x, _ = lgn.Pos()
-			go lgn.Move(x, -height/2, 125)
-			lgn.Show(false, 125)
+			go lgn.Move(x, -height/2, 100)
+			lgn.Show(false, 100)
+			go inputbg.Show(false, 100)
+			typed.Show(false, 100)
 			break readKeys
 		case txt := <-input:
 			typed.Set(txt)
 		}
 	}
 	jsutil.CloseKeyboard()
-
-	println("[LOGGED IN]")
 
 	select {}
 }
