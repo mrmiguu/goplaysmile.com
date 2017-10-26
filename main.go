@@ -1,26 +1,118 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"os"
+	"path/filepath"
+
+	"github.com/mrmiguu/gps_online/shared"
 	"github.com/mrmiguu/sock"
 )
+
+var (
+	accounts = mustLoadAccounts()
+)
+
+func mustLoadAccounts() map[string]account {
+	if _, err := os.Stat("accounts"); os.IsNotExist(err) {
+		println("[creating accounts folder...]")
+		shared.Must(os.Mkdir("accounts", os.ModePerm))
+		println("[creating accounts folder  !]")
+	}
+
+	accounts := map[string]account{}
+
+	println("[reading accounts...]")
+	shared.Must(filepath.Walk("accounts", func(_ string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		name := info.Name()
+
+		f, err := os.Open(name)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		var acct account
+		if json.NewDecoder(f).Decode(&acct) != nil {
+			return err
+		}
+		accounts[name] = acct
+
+		return nil
+	}))
+	println("[reading accounts  !]")
+
+	return accounts
+}
+
+type account struct {
+	Password []byte
+}
 
 func init() {
 	sock.Addr = ":80"
 }
 
 func main() {
-	go logUsersIn(sock.Rstring())
+	Names := sock.Rstring()
+	go logUsersIn(Names)
 	select {}
 }
 
 func logUsersIn(Names <-chan string) {
-	db := make(map[string]interface{})
 	for name := range Names {
-		if _, found := db[name]; found {
-			println("`" + name + "` rejected; already logged in")
-			continue
+		SOCKName := shared.SOCKName(name)
+
+		Found := sock.Wbool(SOCKName)
+		Pass := sock.Rbytes(SOCKName)
+		Err := sock.Werror(SOCKName)
+
+		acct, found := accounts[name]
+		Found <- found
+		if found {
+			println("[logging '" + name + "' in...]")
+		} else {
+			println("[creating account '" + name + "'...]")
 		}
-		db[name] = nil
-		println("`" + name + "` logged in")
+
+		for {
+			if !found {
+				acct.Password = <-Pass
+			}
+			if bytes.Equal(acct.Password, <-Pass) {
+				Err <- nil
+				break
+			}
+
+			if found {
+				Err <- errors.New("wrong password")
+			} else {
+				Err <- errors.New("passwords do not match")
+			}
+		}
+
+		if found {
+			println("[logging '" + name + "' in  !]")
+		} else {
+			println("[creating account '" + name + "'  !]")
+		}
+
+		go acct.join(name)
+		accounts[name] = acct
+
+		sock.Close(SOCKName)
 	}
+}
+
+func (acct account) join(name string) {
+	SOCKAccount := shared.SOCKAccount(name, acct.Password)
+	defer sock.Close(SOCKAccount)
+
+	println("[account '" + name + "' joined]")
+	defer println("[account '" + name + "' left]")
 }

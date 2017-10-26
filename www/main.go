@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/mrmiguu/dxweb"
+	"github.com/mrmiguu/gps_online/shared"
 	"github.com/mrmiguu/jsutil"
 	"github.com/mrmiguu/sock"
 )
@@ -67,14 +68,34 @@ readKeys:
 		select {
 		case <-lgn.Hit:
 			hit.Play()
-			Name <- typed.Get()
+			name := typed.Get()
+			Name <- name
+			go inputbg.Show(false, 100)
+			typed.Show(false, 100)
+			typed.Set("")
+
+			SOCKName := shared.SOCKName(name)
+
+			Found := sock.Rbool(SOCKName)
+			Pass := sock.Wbytes(SOCKName)
+			Err := sock.Rerror(SOCKName)
+
+			found := <-Found
+			go inputbg.Show(true, 100)
+			typed.Show(true, 100)
+			if found {
+
+			} else {
+			}
+
 			_, height = lgn.Size()
 			x, _ = lgn.Pos()
 			go lgn.Move(x, -height/2, 100)
 			lgn.Show(false, 100)
-			go inputbg.Show(false, 100)
-			typed.Show(false, 100)
+
+			sock.Close(SOCKName)
 			break readKeys
+
 		case txt := <-input:
 			typed.Set(txt)
 		}
