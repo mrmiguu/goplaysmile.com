@@ -78,10 +78,7 @@ func game() {
 
 	var SOCKName string
 
-	var found bool
-
-	// var pwMode bool
-	var pass []byte
+	var Found <-chan bool
 	var Pass chan<- []byte
 	var Err <-chan error
 
@@ -91,7 +88,6 @@ readName:
 		case <-lgn.Hit:
 			hit.Play()
 			name = typed.Get()
-			Name <- name
 
 			go inputbg.Show(false, 100)
 			typed.Show(false, 100)
@@ -104,20 +100,11 @@ readName:
 			SOCKName = shared.SOCKName(name)
 			fmt.Println(`SOCKName`, []byte(SOCKName))
 
-			Found := sock.Rbool(SOCKName)
+			Found = sock.Rbool(SOCKName)
 			Pass = sock.Wbytes(SOCKName)
 			Err = sock.Rerror(SOCKName)
 
-			println("[found account...]")
-			found = <-Found
-			println("[found account  !]")
-
-			typed.Set("Enter a password")
-			go inputbg.Show(true, 100)
-			typed.Show(true, 100)
-
-			go pwd.Move(x, height/2, 100)
-			pwd.Show(true, 100)
+			Name <- name
 
 			break readName
 
@@ -126,22 +113,34 @@ readName:
 		}
 	}
 
+	var found bool
+	var retryPass bool
+	var pass []byte
+
 readPass:
 	for {
 		select {
+		case found = <-Found:
+			typed.Set("Enter a password")
+			go inputbg.Show(true, 100)
+			typed.Show(true, 100)
+
+			go pwd.Move(x, height/2, 100)
+			pwd.Show(true, 100)
+
 		case <-pwd.Hit:
 			hit.Play()
 			Pass <- pass
 
 			go inputbg.Show(false, 100)
 			typed.Show(false, 100)
-			typed.Set("")
+			typed.Set("Reenter password")
 			jsutil.CloseKeyboard()
 
 			go pwd.Move(x, -height/2, 100)
 			pwd.Show(false, 100)
 
-			if found {
+			if found && !retryPass {
 				continue
 			}
 
@@ -160,7 +159,7 @@ readPass:
 				break readPass
 			}
 
-			found = false
+			retryPass = true
 
 			go inputbg.Show(true, 100)
 			typed.Show(true, 100)

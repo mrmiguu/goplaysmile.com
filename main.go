@@ -84,14 +84,17 @@ func logUsersIn(Names <-chan string) {
 
 		for {
 			if !found {
-				println("[first password...]")
+				println("[pre password...]")
 				acct.Password = <-Pass
-				println("[first password  !]")
+				println("[pre password  !]")
 			}
+			println("[password...]")
 			if bytes.Equal(acct.Password, <-Pass) {
+				println("[password  !]")
 				Err <- nil
 				break
 			}
+			println("[password  X]")
 
 			if found {
 				Err <- errors.New("wrong password")
