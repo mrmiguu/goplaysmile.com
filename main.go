@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -55,7 +56,7 @@ type account struct {
 }
 
 func init() {
-	sock.Addr = ":80"
+	// sock.Addr = ":80"
 }
 
 func main() {
@@ -67,6 +68,7 @@ func main() {
 func logUsersIn(Names <-chan string) {
 	for name := range Names {
 		SOCKName := shared.SOCKName(name)
+		fmt.Println(`SOCKName`, []byte(SOCKName))
 
 		Found := sock.Wbool(SOCKName)
 		Pass := sock.Rbytes(SOCKName)
@@ -82,7 +84,9 @@ func logUsersIn(Names <-chan string) {
 
 		for {
 			if !found {
+				println("[first password...]")
 				acct.Password = <-Pass
+				println("[first password  !]")
 			}
 			if bytes.Equal(acct.Password, <-Pass) {
 				Err <- nil

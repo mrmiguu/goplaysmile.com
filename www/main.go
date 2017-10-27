@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/mrmiguu/dxweb"
@@ -12,10 +13,15 @@ import (
 func init() {
 	dxweb.Width = 750
 	dxweb.Height = 1100
-	sock.Addr = "47.148.135.216"
+	// sock.Addr = "47.148.135.216"
 }
 
 func main() {
+	go game()
+	select {}
+}
+
+func game() {
 	bgld := dxweb.LoadImage("assets/bg.png")
 	lgnld := dxweb.LoadImage("assets/login-btn.png")
 	pwdld := dxweb.LoadImage("assets/pass-btn.png")
@@ -31,10 +37,12 @@ func main() {
 	go splash.Show(false)
 
 	bg := <-bgld
+	pwd := <-pwdld
 	lgn := <-lgnld
 
-	_, height := lgn.Size()
-	x, _ := lgn.Pos()
+	_, height := pwd.Size()
+	x, _ := pwd.Pos()
+	pwd.Move(x, -height/2)
 	lgn.Move(x, height/2)
 
 	bg.Show(true)
@@ -67,7 +75,17 @@ func main() {
 
 	var name string
 	Name := sock.Wstring()
-readKeys:
+
+	var SOCKName string
+
+	var found bool
+
+	// var pwMode bool
+	var pass []byte
+	var Pass chan<- []byte
+	var Err <-chan error
+
+readName:
 	for {
 		select {
 		case <-lgn.Hit:
@@ -78,47 +96,39 @@ readKeys:
 			go inputbg.Show(false, 100)
 			typed.Show(false, 100)
 			typed.Set("")
+			jsutil.CloseKeyboard()
 
-			_, height = lgn.Size()
-			x, _ = lgn.Pos()
 			go lgn.Move(x, -height/2, 100)
 			lgn.Show(false, 100)
 
-			break readKeys
+			SOCKName = shared.SOCKName(name)
+			fmt.Println(`SOCKName`, []byte(SOCKName))
+
+			Found := sock.Rbool(SOCKName)
+			Pass = sock.Wbytes(SOCKName)
+			Err = sock.Rerror(SOCKName)
+
+			println("[found account...]")
+			found = <-Found
+			println("[found account  !]")
+
+			typed.Set("Enter a password")
+			go inputbg.Show(true, 100)
+			typed.Show(true, 100)
+
+			go pwd.Move(x, height/2, 100)
+			pwd.Show(true, 100)
+
+			break readName
 
 		case txt := <-input:
 			typed.Set(txt)
 		}
 	}
 
-	SOCKName := shared.SOCKName(name)
-
-	Found := sock.Rbool(SOCKName)
-	found := <-Found
-
-	pwd := <-pwdld
-	_, height = pwd.Size()
-	x, _ = pwd.Pos()
-	pwd.Move(x, -height/2)
-
-	var pass []byte
-	Pass := sock.Wbytes(SOCKName)
-	Err := sock.Rerror(SOCKName)
-
-	go inputbg.Show(true, 100)
-	typed.Show(true, 100)
-
-	go pwd.Move(x, height/2, 100)
-	pwd.Show(true, 100)
-
-readKeys:
+readPass:
 	for {
 		select {
-		case err := <-Err:
-			if err == nil {
-				break readKeys
-			}
-
 		case <-pwd.Hit:
 			hit.Play()
 			Pass <- pass
@@ -126,15 +136,38 @@ readKeys:
 			go inputbg.Show(false, 100)
 			typed.Show(false, 100)
 			typed.Set("")
+			jsutil.CloseKeyboard()
 
 			go pwd.Move(x, -height/2, 100)
 			pwd.Show(false, 100)
+
+			if found {
+				continue
+			}
 
 			go inputbg.Show(true, 100)
 			typed.Show(true, 100)
 
 			go pwd.Move(x, height/2, 100)
 			pwd.Show(true, 100)
+			jsutil.OpenKeyboard()
+
+			found = true
+
+		case err := <-Err:
+			if err == nil {
+				sock.Close(SOCKName)
+				break readPass
+			}
+
+			found = false
+
+			go inputbg.Show(true, 100)
+			typed.Show(true, 100)
+
+			go pwd.Move(x, height/2, 100)
+			pwd.Show(true, 100)
+			jsutil.OpenKeyboard()
 
 		case txt := <-input:
 			L := len(txt)
@@ -146,9 +179,5 @@ readKeys:
 		}
 	}
 
-	sock.Close(SOCKName)
-
 	jsutil.CloseKeyboard()
-
-	select {}
 }
