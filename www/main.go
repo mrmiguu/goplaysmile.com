@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/mrmiguu/dxweb"
@@ -13,7 +12,7 @@ import (
 func init() {
 	dxweb.Width = 750
 	dxweb.Height = 1100
-	// sock.Addr = "47.148.135.216"
+	sock.Addr = "goplaysmile.com"
 }
 
 func main() {
@@ -60,17 +59,9 @@ func game() {
 	inputbg := <-inputbgld
 	inputbg.Move(x, inputy)
 	typed.Move(x, inputy)
-	go func() {
-		for {
-			select {
-			case <-inputbg.Hit:
-			case <-typed.Hit:
-			}
-			jsutil.OpenKeyboard()
-		}
-	}()
+	typed.Resize(84)
+
 	go inputbg.Show(true, 100)
-	go typed.Resize(84, 100)
 	typed.Show(true, 100)
 
 	var name string
@@ -87,18 +78,18 @@ readName:
 		select {
 		case <-lgn.Hit:
 			hit.Play()
+
 			name = typed.Get()
 
 			go inputbg.Show(false, 100)
 			typed.Show(false, 100)
 			typed.Set("")
-			jsutil.CloseKeyboard()
+			jsutil.ClearKeyboard()
 
 			go lgn.Move(x, -height/2, 100)
 			lgn.Show(false, 100)
 
 			SOCKName = shared.SOCKName(name)
-			fmt.Println(`SOCKName`, []byte(SOCKName))
 
 			Found = sock.Rbool(SOCKName)
 			Pass = sock.Wbytes(SOCKName)
@@ -108,13 +99,18 @@ readName:
 
 			break readName
 
+		case <-inputbg.Hit:
+			jsutil.OpenKeyboard()
+		case <-typed.Hit:
+			jsutil.OpenKeyboard()
+
 		case txt := <-input:
 			typed.Set(txt)
 		}
 	}
 
 	var found bool
-	var retryPass bool
+	var once bool
 	var pass []byte
 
 readPass:
@@ -128,19 +124,26 @@ readPass:
 			go pwd.Move(x, height/2, 100)
 			pwd.Show(true, 100)
 
+			once = found
+
 		case <-pwd.Hit:
 			hit.Play()
+			if once {
+				jsutil.ClearKeyboard()
+			}
+
 			Pass <- pass
 
 			go inputbg.Show(false, 100)
 			typed.Show(false, 100)
+			pass = nil
 			typed.Set("Reenter password")
-			jsutil.CloseKeyboard()
+			jsutil.ClearKeyboard()
 
 			go pwd.Move(x, -height/2, 100)
 			pwd.Show(false, 100)
 
-			if found && !retryPass {
+			if found || once {
 				continue
 			}
 
@@ -149,9 +152,8 @@ readPass:
 
 			go pwd.Move(x, height/2, 100)
 			pwd.Show(true, 100)
-			jsutil.OpenKeyboard()
 
-			found = true
+			once = true
 
 		case err := <-Err:
 			if err == nil {
@@ -159,24 +161,28 @@ readPass:
 				break readPass
 			}
 
-			retryPass = true
+			once = false
 
+			typed.Set(err.Error())
 			go inputbg.Show(true, 100)
 			typed.Show(true, 100)
 
 			go pwd.Move(x, height/2, 100)
 			pwd.Show(true, 100)
+
+		case <-inputbg.Hit:
+			jsutil.OpenKeyboard()
+		case <-typed.Hit:
 			jsutil.OpenKeyboard()
 
 		case txt := <-input:
 			L := len(txt)
-			if L == 0 {
-				continue
+			var hidden string
+			if L > 0 {
+				hidden = strings.Repeat("*", L-1) + string(txt[L-1])
 			}
-			typed.Set(strings.Repeat("*", L-1) + string(txt[L-1]))
+			typed.Set(hidden)
 			pass = []byte(txt)
 		}
 	}
-
-	jsutil.CloseKeyboard()
 }
