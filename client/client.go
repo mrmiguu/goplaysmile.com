@@ -26,7 +26,8 @@ func main() {
 	gpsld := dxweb.LoadImage("assets/gps-start.png")
 	splashld := dxweb.LoadImage("assets/splash.png")
 	inputbgld := dxweb.LoadImage("assets/inputbg.png")
-	dield := dxweb.LoadSprite("assets/die/dice.png", 6, 6)
+	shdwld := dxweb.LoadImage("assets/die/shadow.png")
+	dield := dxweb.LoadSprite("assets/die/newdie.png", 1, 6)
 	liftld := dxweb.LoadSound("assets/die/lift.wav")
 	landld := dxweb.LoadSound("assets/die/land.wav")
 
@@ -182,13 +183,24 @@ readPass:
 
 	lift := <-liftld
 	land := <-landld
+	shdw := <-shdwld
 	die := <-dield
+	x, y := die.Pos()
+	shdw.Move(x, y+120)
+	die.Move(x, y+120)
+	x, y = die.Pos()
+	shdw.Show(true)
 	die.Show(true)
 	for {
 		select {
 		case <-die.Hit:
 			lift.Play()
-			die.Play(rand.Intn(6), 150)
+			dir := float64(rand.Int()%4) + 1.0
+			go die.Rotate(90*dir, 125)
+			die.Move(x, y-360, 125)
+			go die.Rotate(0, 125)
+			die.Play(rand.Intn(6))
+			die.Move(x, y, 125)
 			land.Play()
 		}
 	}
