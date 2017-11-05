@@ -26,10 +26,6 @@ func main() {
 	gpsld := dxweb.LoadImage("assets/gps-start.png")
 	splashld := dxweb.LoadImage("assets/splash.png")
 	inputbgld := dxweb.LoadImage("assets/inputbg.png")
-	shdwld := dxweb.LoadImage("assets/die/shadow.png")
-	dield := dxweb.LoadSprite("assets/die/newdie.png", 1, 6)
-	liftld := dxweb.LoadSound("assets/die/lift.wav")
-	landld := dxweb.LoadSound("assets/die/land.wav")
 
 	splash := <-splashld
 	splash.Show(true, 2500)
@@ -179,29 +175,116 @@ readPass:
 	sock.Close(SOCKName)
 
 	SOCKAccount := shared.SOCKAccount(name, pass)
-	sock.Close(SOCKAccount)
+	defer sock.Close(SOCKAccount)
 
-	lift := <-liftld
-	land := <-landld
-	shdw := <-shdwld
-	die := <-dield
-	x, y := die.Pos()
-	shdw.Move(x, y+120)
-	die.Move(x, y+120)
-	x, y = die.Pos()
-	shdw.Show(true)
-	die.Show(true)
-	for {
-		select {
-		case <-die.Hit:
-			lift.Play()
-			dir := float64(rand.Int()%4) + 1.0
-			go die.Rotate(90*dir, 125)
-			die.Move(x, y-360, 125)
-			go die.Rotate(0, 125)
-			die.Play(rand.Intn(6))
-			die.Move(x, y, 125)
-			land.Play()
+	mapnms := []string{
+		"santaclarita",
+		"sanfernando",
+		"lakeviewterrace",
+		"sunland",
+		"panoramacity",
+		"lacanada",
+		"pasadena",
+		"vannuys",
+		"burbank",
+		"studiocity",
+		"glendale",
+		"azusa",
+		"sandimas",
+		"claremont",
+		"highlandpark",
+		"losangeles",
+		"beverlyhills",
+		"rosemead",
+		"westcovina",
+		"pomona",
+		"elmonte",
+		"montereypark",
+		"calpoly",
+		"usc",
+		"commerce",
+		"southelmonte",
+		"culvercity",
+		"chinohills",
+		"santamonica",
+		"diamondbar",
+		"cityofindustry",
+		"santafesprings",
+		"lax",
+		"watts",
+		"lynwood",
+		"brea",
+		"corona",
+		"bellflower",
+		"compton",
+		"hawthorne",
+		"gardena",
+		"dominguezhills",
+		"northlongbeach",
+		"torrance",
+		"buenapark",
+		"carson",
+		"fullerton",
+		"yorbalinda",
+		"anaheim",
+		"cypress",
+		"westminster",
+		"palosverdes",
+		"gardengrove",
+		"orange",
+		"longbeach",
+		"sanpedro",
+		"huntingtonbeach",
+		"santaana",
+		"fountainvalley",
+	}
+	for _, mapnm := range mapnms {
+		if _, exists := maps[mapnm]; !exists {
+			m := <-dxweb.LoadImage("assets/maps/" + mapnm + ".png")
+			x, _ := m.Pos()
+			_, height := m.Size()
+			m.Move(x, dxweb.Height-height/2)
+			maps[mapnm] = m
 		}
 	}
+
+	shdw := <-dxweb.LoadImage("assets/die/shadow.png")
+	die := <-dxweb.LoadSprite("assets/die/dice.png", 1, 6)
+	lift := <-dxweb.LoadSound("assets/die/lift.wav")
+	land := <-dxweb.LoadSound("assets/die/land.wav")
+
+	x, _ = die.Pos()
+	_, height = die.Size()
+	shdw.Move(x, 787-height/2)
+	die.Move(x, 787-height/2)
+	x, y := die.Pos()
+	shdw.Show(true)
+	die.Show(true)
+	Map := maps["corona"]
+	Map.Show(true)
+	go func() {
+		for {
+			select {
+			case <-die.Hit:
+				lift.Play()
+				dir := float64(rand.Int()%4) + 1.0
+				go die.Rotate(90*dir, 125)
+				die.Move(x, y-360, 125)
+				go die.Rotate(0, 125)
+				rndmap := rand.Intn(len(mapnms))
+				side := rndmap % 6
+				die.Play(side)
+
+				Map.Show(false)
+
+				Map = maps[mapnms[rndmap]]
+				Map.Show(true)
+
+				die.Move(x, y, 125)
+				land.Play()
+			}
+		}
+	}()
 }
+
+var maps = map[string]dxweb.Image{}
