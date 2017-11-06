@@ -3,6 +3,7 @@ package client
 import (
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/mrmiguu/dxweb"
 	"github.com/mrmiguu/gps_online/shared"
@@ -20,12 +21,79 @@ func init() {
 
 func main() {
 	bgld := dxweb.LoadImage("assets/bg.png")
+	// bgmld := dxweb.LoadSound("assets/Hantasi - Go Play Smile.mp3")
 	lgnld := dxweb.LoadImage("assets/login-btn.png")
 	pwdld := dxweb.LoadImage("assets/pass-btn.png")
 	hitld := dxweb.LoadSound("assets/hit.wav")
 	gpsld := dxweb.LoadImage("assets/gps-start.png")
 	splashld := dxweb.LoadImage("assets/splash.png")
 	inputbgld := dxweb.LoadImage("assets/inputbg.png")
+
+	mapnms := []string{
+		"santaclarita",
+		"sanfernando",
+		"lakeviewterrace",
+		"sunland",
+		"panoramacity",
+		"lacanada",
+		"pasadena",
+		"vannuys",
+		"burbank",
+		"studiocity",
+		"glendale",
+		"azusa",
+		"sandimas",
+		"claremont",
+		"highlandpark",
+		"losangeles",
+		"beverlyhills",
+		"rosemead",
+		"westcovina",
+		"pomona",
+		"elmonte",
+		"montereypark",
+		"calpoly",
+		"usc",
+		"commerce",
+		"southelmonte",
+		"culvercity",
+		"chinohills",
+		"santamonica",
+		"diamondbar",
+		"cityofindustry",
+		"santafesprings",
+		"lax",
+		"watts",
+		"lynwood",
+		"brea",
+		"corona",
+		"bellflower",
+		"compton",
+		"hawthorne",
+		"gardena",
+		"dominguezhills",
+		"northlongbeach",
+		"torrance",
+		"buenapark",
+		"carson",
+		"fullerton",
+		"yorbalinda",
+		"anaheim",
+		"cypress",
+		"westminster",
+		"palosverdes",
+		"gardengrove",
+		"orange",
+		"longbeach",
+		"sanpedro",
+		"huntingtonbeach",
+		"santaana",
+		"fountainvalley",
+	}
+	maplds := map[string]<-chan dxweb.Image{}
+	for _, mapnm := range mapnms {
+		maplds[mapnm] = dxweb.LoadImage("assets/maps/" + mapnm + ".png")
+	}
 
 	splash := <-splashld
 	splash.Show(true, 2500)
@@ -177,75 +245,16 @@ readPass:
 	SOCKAccount := shared.SOCKAccount(name, pass)
 	defer sock.Close(SOCKAccount)
 
-	mapnms := []string{
-		"santaclarita",
-		"sanfernando",
-		"lakeviewterrace",
-		"sunland",
-		"panoramacity",
-		"lacanada",
-		"pasadena",
-		"vannuys",
-		"burbank",
-		"studiocity",
-		"glendale",
-		"azusa",
-		"sandimas",
-		"claremont",
-		"highlandpark",
-		"losangeles",
-		"beverlyhills",
-		"rosemead",
-		"westcovina",
-		"pomona",
-		"elmonte",
-		"montereypark",
-		"calpoly",
-		"usc",
-		"commerce",
-		"southelmonte",
-		"culvercity",
-		"chinohills",
-		"santamonica",
-		"diamondbar",
-		"cityofindustry",
-		"santafesprings",
-		"lax",
-		"watts",
-		"lynwood",
-		"brea",
-		"corona",
-		"bellflower",
-		"compton",
-		"hawthorne",
-		"gardena",
-		"dominguezhills",
-		"northlongbeach",
-		"torrance",
-		"buenapark",
-		"carson",
-		"fullerton",
-		"yorbalinda",
-		"anaheim",
-		"cypress",
-		"westminster",
-		"palosverdes",
-		"gardengrove",
-		"orange",
-		"longbeach",
-		"sanpedro",
-		"huntingtonbeach",
-		"santaana",
-		"fountainvalley",
-	}
-	for _, mapnm := range mapnms {
-		if _, exists := maps[mapnm]; !exists {
-			m := <-dxweb.LoadImage("assets/maps/" + mapnm + ".png")
-			x, _ := m.Pos()
-			_, height := m.Size()
-			m.Move(x, dxweb.Height-height/2)
-			maps[mapnm] = m
-		}
+	// bgm := <-bgmld
+	// bgm.Loop()
+
+	maps := map[string]dxweb.Image{}
+	for mapnm, mapld := range maplds {
+		m := <-mapld
+		x, _ := m.Pos()
+		_, height := m.Size()
+		m.Move(x, dxweb.Height-height/2)
+		maps[mapnm] = m
 	}
 
 	shdw := <-dxweb.LoadImage("assets/die/shadow.png")
@@ -257,10 +266,14 @@ readPass:
 	_, height = die.Size()
 	shdw.Move(x, 787-height/2)
 	die.Move(x, 787-height/2)
+	rand.Seed(int64(time.Now().Nanosecond()))
+	rndmap := rand.Intn(len(maps))
+	side := rndmap % 6
+	die.Play(side)
 	x, y := die.Pos()
 	shdw.Show(true)
 	die.Show(true)
-	Map := maps["corona"]
+	Map := maps[mapnms[rndmap]]
 	Map.Show(true)
 	go func() {
 		for {
@@ -271,7 +284,7 @@ readPass:
 				go die.Rotate(90*dir, 125)
 				die.Move(x, y-360, 125)
 				go die.Rotate(0, 125)
-				rndmap := rand.Intn(len(mapnms))
+				rndmap := rand.Intn(len(maps))
 				side := rndmap % 6
 				die.Play(side)
 
@@ -286,5 +299,3 @@ readPass:
 		}
 	}()
 }
-
-var maps = map[string]dxweb.Image{}

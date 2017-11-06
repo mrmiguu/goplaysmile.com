@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -118,11 +119,10 @@ type account struct {
 
 func init() {
 	sock.Addr = ":80"
-	go main()
-}
+	http.HandleFunc("/gpso_ipn", ipnHandler)
 
-func main() {
 	Names := sock.Rstring()
+
 	go logUsersIn(Names)
 }
 
