@@ -2,6 +2,7 @@ package client
 
 import (
 	"math/rand"
+	"net/url"
 	"strings"
 	"time"
 
@@ -244,6 +245,12 @@ readPass:
 
 	SOCKAccount := shared.SOCKAccount(name, pass)
 	defer sock.Close(SOCKAccount)
+
+	fields := url.Values{}
+	fields.Set("cmd", "_s-xclick")
+	fields.Set("hosted_button_id", "3AGKVQVLS9WF2")
+	fields.Set("custom", name)
+	jsutil.OpenLink("https://www.paypal.com/cgi-bin/webscr?" + fields.Encode())
 
 	// bgm := <-bgmld
 	// bgm.Loop()
