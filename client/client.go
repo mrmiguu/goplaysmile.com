@@ -263,6 +263,11 @@ readPass:
 		maps[mapnm] = m
 	}
 
+	icobar := <-dxweb.LoadImage("assets/icobar.png")
+	ibx, _ := icobar.Pos()
+	_, ibh := icobar.Size()
+	icobar.Move(ibx, ibh/2)
+
 	shdw := <-dxweb.LoadImage("assets/die/shadow.png")
 	die := <-dxweb.LoadSprite("assets/die/dice.png", 1, 6)
 	lift := <-dxweb.LoadSound("assets/die/lift.wav")
@@ -305,6 +310,7 @@ readPass:
 	paperdoll.Show(true)
 	Map := maps[mapnms[rndmap]]
 	Map.Show(true)
+	icobar.Show(true)
 
 	for {
 		select {
