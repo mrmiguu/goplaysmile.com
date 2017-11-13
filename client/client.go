@@ -2,7 +2,6 @@ package client
 
 import (
 	"math/rand"
-	"net/url"
 	"strings"
 	"time"
 
@@ -246,11 +245,11 @@ readPass:
 	SOCKAccount := shared.SOCKAccount(name, pass)
 	defer sock.Close(SOCKAccount)
 
-	fields := url.Values{}
-	fields.Set("cmd", "_s-xclick")
-	fields.Set("hosted_button_id", "3AGKVQVLS9WF2")
-	fields.Set("custom", name)
-	jsutil.OpenLink("https://www.paypal.com/cgi-bin/webscr?" + fields.Encode())
+	// fields := url.Values{}
+	// fields.Set("cmd", "_s-xclick")
+	// fields.Set("hosted_button_id", "3AGKVQVLS9WF2")
+	// fields.Set("custom", name)
+	// jsutil.OpenLink("https://www.paypal.com/cgi-bin/webscr?" + fields.Encode())
 
 	// bgm := <-bgmld
 	// bgm.Loop()
@@ -269,40 +268,89 @@ readPass:
 	lift := <-dxweb.LoadSound("assets/die/lift.wav")
 	land := <-dxweb.LoadSound("assets/die/land.wav")
 
+	dolls := []dxweb.Image{
+		<-dxweb.LoadImage("assets/die/hats/boot.png"),
+		<-dxweb.LoadImage("assets/die/hats/brownshoe.png"),
+		<-dxweb.LoadImage("assets/die/hats/catmask.png"),
+		<-dxweb.LoadImage("assets/die/hats/crosshelm.png"),
+		<-dxweb.LoadImage("assets/die/hats/crown.png"),
+		<-dxweb.LoadImage("assets/die/hats/dogmask.png"),
+		<-dxweb.LoadImage("assets/die/hats/fryingpan.png"),
+		<-dxweb.LoadImage("assets/die/hats/gradcap.png"),
+		<-dxweb.LoadImage("assets/die/hats/highheel.png"),
+		<-dxweb.LoadImage("assets/die/hats/sandal.png"),
+		<-dxweb.LoadImage("assets/die/hats/shortcake.png"),
+		<-dxweb.LoadImage("assets/die/hats/sneaker.png"),
+		<-dxweb.LoadImage("assets/die/hats/sunhat.png"),
+		<-dxweb.LoadImage("assets/die/hats/tophat.png"),
+	}
+	// for i := range dolls {
+	// 	dolls[i].Disable(true)
+	// }
+
 	x, _ = die.Pos()
 	_, height = die.Size()
 	shdw.Move(x, 787-height/2)
 	die.Move(x, 787-height/2)
 	rand.Seed(int64(time.Now().Nanosecond()))
 	rndmap := rand.Intn(len(maps))
+	doll := rndmap % len(dolls)
+	paperdoll := dolls[doll]
 	side := rndmap % 6
 	die.Play(side)
 	x, y := die.Pos()
+	paperdoll.Move(x, y)
 	shdw.Show(true)
 	die.Show(true)
+	paperdoll.Show(true)
 	Map := maps[mapnms[rndmap]]
 	Map.Show(true)
-	go func() {
-		for {
+
+	for {
+		select {
+		case <-paperdoll.Hit:
 			select {
 			case <-die.Hit:
-				lift.Play()
-				dir := float64(rand.Int()%4) + 1.0
-				go die.Rotate(90*dir, 125)
-				die.Move(x, y-360, 125)
-				go die.Rotate(0, 125)
-				rndmap := rand.Intn(len(maps))
-				side := rndmap % 6
-				die.Play(side)
-
-				Map.Show(false)
-
-				Map = maps[mapnms[rndmap]]
-				Map.Show(true)
-
-				die.Move(x, y, 125)
-				land.Play()
+			default:
+			}
+		case <-die.Hit:
+			select {
+			case <-paperdoll.Hit:
+			default:
 			}
 		}
-	}()
+
+		lift.Play()
+		dir := float64(rand.Int()%4) + 1.0
+
+		go paperdoll.Rotate(90*dir, 125)
+		go die.Rotate(90*dir, 125)
+
+		go paperdoll.Move(x, y-360, 125)
+		die.Move(x, y-360, 125)
+
+		go paperdoll.Rotate(0, 125)
+		go die.Rotate(0, 125)
+
+		rndmap := rand.Intn(len(maps))
+
+		side := rndmap % 6
+		die.Play(side)
+
+		Map.Show(false)
+
+		Map = maps[mapnms[rndmap]]
+		Map.Show(true)
+
+		go paperdoll.Move(x, y, 125)
+		die.Move(x, y, 125)
+
+		doll := rndmap % len(dolls)
+		paperdoll.Show(false)
+		paperdoll = dolls[doll]
+		paperdoll.Move(x, y)
+		paperdoll.Show(true)
+
+		land.Play()
+	}
 }
