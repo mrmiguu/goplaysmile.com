@@ -118,7 +118,7 @@ type account struct {
 }
 
 func init() {
-	sock.Addr = ":80"
+	// sock.Addr = ":80"
 	http.HandleFunc("/gpso_ipn", ipnHandler)
 
 	Names := sock.Rstring()

@@ -14,7 +14,7 @@ import (
 func init() {
 	dxweb.Width = 750
 	dxweb.Height = 1100
-	sock.Addr = "goplaysmile.com"
+	// sock.Addr = "goplaysmile.com"
 
 	go main()
 }
@@ -245,28 +245,24 @@ readPass:
 	SOCKAccount := shared.SOCKAccount(name, pass)
 	defer sock.Close(SOCKAccount)
 
-	// fields := url.Values{}
-	// fields.Set("cmd", "_s-xclick")
-	// fields.Set("hosted_button_id", "3AGKVQVLS9WF2")
-	// fields.Set("custom", name)
-	// jsutil.OpenLink("https://www.paypal.com/cgi-bin/webscr?" + fields.Encode())
-
 	// bgm := <-bgmld
 	// bgm.Loop()
 
 	maps := map[string]dxweb.Image{}
 	for mapnm, mapld := range maplds {
 		m := <-mapld
-		x, _ := m.Pos()
-		_, height := m.Size()
-		m.Move(x, dxweb.Height-height/2)
+		m.Move(dxweb.Bottom(m))
 		maps[mapnm] = m
 	}
 
 	icobar := <-dxweb.LoadImage("assets/icobar.png")
-	ibx, _ := icobar.Pos()
-	_, ibh := icobar.Size()
-	icobar.Move(ibx, ibh/2)
+	icobar.Move(dxweb.Top(icobar))
+
+	// icoBag := <-dxweb.LoadImage("assets/ico-bag.png")
+	// icoGiftshop := <-dxweb.LoadImage("assets/ico-giftshop.png")
+	icoGpsos := <-dxweb.LoadImage("assets/ico-gpsos.png")
+	// icoMarket := <-dxweb.LoadImage("assets/ico-market.png")
+	// icoSearch := <-dxweb.LoadImage("assets/ico-search.png")
 
 	shdw := <-dxweb.LoadImage("assets/die/shadow.png")
 	die := <-dxweb.LoadSprite("assets/die/dice.png", 1, 6)
@@ -310,10 +306,17 @@ readPass:
 	paperdoll.Show(true)
 	Map := maps[mapnms[rndmap]]
 	Map.Show(true)
+
 	icobar.Show(true)
+
+	icoGpsos.Move(icobar.Pos())
+	icoGpsos.Show(true)
 
 	for {
 		select {
+		case <-icoGpsos.Hit:
+			jsutil.OpenLink("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=3AGKVQVLS9WF2&custom=" + name)
+			continue
 		case <-paperdoll.Hit:
 			select {
 			case <-die.Hit:
