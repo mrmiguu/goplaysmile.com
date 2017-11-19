@@ -14,7 +14,7 @@ import (
 func init() {
 	dxweb.Width = 750
 	dxweb.Height = 1100
-	// sock.Addr = "goplaysmile.com"
+	sock.Addr = "goplaysmile.com"
 
 	go main()
 }
@@ -94,6 +94,8 @@ func main() {
 	for _, mapnm := range mapnms {
 		maplds[mapnm] = dxweb.LoadImage("assets/maps/" + mapnm + ".png")
 	}
+
+	// check for frozen log-out
 
 	splash := <-splashld
 	splash.Show(true, 2500)
@@ -289,6 +291,28 @@ readPass:
 	// 	dolls[i].Disable(true)
 	// }
 
+	blank := <-dxweb.LoadImage("assets/blank-scr.png")
+	bx, by := blank.Pos()
+	_, bh := blank.Size()
+	blank.Move(bx, -bh/2)
+	_, by2 := blank.Pos()
+
+	halfGpso := 58
+
+	gpsoHit := <-dxweb.LoadSound("assets/gpsos/hit.wav")
+	cost2 := <-dxweb.LoadImage("assets/gpsos/cost_2.png")
+	c2w, _ := cost2.Size()
+	_, c2y := cost2.Pos()
+	cost2.Move(bx+c2w/2+halfGpso, by2)
+	c2x, _ := cost2.Pos()
+
+	gpsos10 := <-dxweb.LoadImage("assets/gpsos/gpsos_10.png")
+	g10w, _ := gpsos10.Size()
+	_, g10y := gpsos10.Pos()
+
+	gpsos10.Move(bx-g10w/2+halfGpso, by2)
+	g10x, _ := gpsos10.Pos()
+
 	x, _ = die.Pos()
 	_, height = die.Size()
 	shdw.Move(x, 787-height/2)
@@ -315,8 +339,23 @@ readPass:
 	for {
 		select {
 		case <-icoGpsos.Hit:
-			jsutil.OpenLink("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=3AGKVQVLS9WF2&custom=" + name)
+			hit.Play()
+
+			cost2.Show(true)
+			gpsos10.Show(true)
+			blank.Show(true)
+
+			go cost2.Move(c2x, c2y, 250)
+			go gpsos10.Move(g10x, g10y, 250)
+			blank.Move(bx, by, 250)
+
+			land.Play()
+
+			<-gpsos10.Hit
+			gpsoHit.Play()
+			jsutil.Redirect("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=3AGKVQVLS9WF2&custom=" + name)
 			continue
+
 		case <-paperdoll.Hit:
 			select {
 			case <-die.Hit:
