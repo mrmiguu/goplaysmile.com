@@ -186,11 +186,9 @@ readName:
 	hashStr, foundHash := cookie["hash"]
 	println("hash", hashStr)
 	hidden := "Enter a password"
-	var pass []byte
 	plen, err := strconv.Atoi(cookie["plen"])
 	if foundHash && err == nil {
 		hidden = strings.Repeat("*", plen)
-		pass = []byte(hidden)
 	}
 
 	typed.Set(hidden)
@@ -200,6 +198,8 @@ readName:
 	go pwd.Move(x, height/2, 100)
 	pwd.Show(true, 100)
 
+	var pass []byte
+
 readPass:
 	for {
 		select {
@@ -207,16 +207,16 @@ readPass:
 			jsutil.FocusKeyboard()
 			hit.Play()
 
-			plen = len(pass)
 			var hash []byte
-			if foundHash {
+			if foundHash && len(pass) == 0 {
 				hash = []byte(hashStr)
 			} else {
 				// b32 := sha256.Sum256(pass)
+				plen = len(pass)
 				hash = pass
 				hashStr = string(hash)
-				fmt.Println(hashStr)
 			}
+			fmt.Println(hashStr)
 
 			Pass <- hash
 
