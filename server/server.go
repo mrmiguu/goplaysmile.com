@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -146,10 +147,13 @@ func logUsersIn(Names <-chan string) {
 			if !found {
 				println("[pre password...]")
 				acct.Password = <-Pass
+				fmt.Println("[pass 1 ", string(acct.Password), "]")
 				println("[pre password  !]")
 			}
 			println("[password...]")
-			if bytes.Equal(acct.Password, <-Pass) {
+			pass2 := <-Pass
+			fmt.Println("[pass 2 ", string(pass2), "']")
+			if bytes.Equal(acct.Password, pass2) {
 				println("[password  !]")
 				Err <- nil
 				break

@@ -1,7 +1,9 @@
 package client
 
 import (
+	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 
@@ -96,6 +98,10 @@ func main() {
 	}
 
 	// check for frozen log-out
+	cookie := jsutil.LoadCookie()
+	// for k, v := range cookie {
+	// 	jsutil.Alert(k + "=" + v)
+	// }
 
 	splash := <-splashld
 	splash.Show(true, 2500)
@@ -121,7 +127,11 @@ func main() {
 	hit.Play()
 	go gps.Show(false, 125)
 
-	typed := dxweb.NewText("Enter a username")
+	name, found := cookie["name"]
+	if !found {
+		name = "Enter a username"
+	}
+	typed := dxweb.NewText(name)
 	x, _ = typed.Pos()
 	inputy := height + height/2
 	inputbg := <-inputbgld
@@ -134,7 +144,6 @@ func main() {
 
 	Name := sock.Wstring()
 
-	var name string
 readName:
 	for {
 		select {
@@ -171,17 +180,26 @@ readName:
 
 	Name <- name
 
-	found := <-Found
+	found = <-Found
 	once := found
 
-	typed.Set("Enter a password")
+	hashStr, foundHash := cookie["hash"]
+	println("hash", hashStr)
+	hidden := "Enter a password"
+	var pass []byte
+	plen, err := strconv.Atoi(cookie["plen"])
+	if foundHash && err == nil {
+		hidden = strings.Repeat("*", plen)
+		pass = []byte(hidden)
+	}
+
+	typed.Set(hidden)
 	go inputbg.Show(true, 100)
 	typed.Show(true, 100)
 
 	go pwd.Move(x, height/2, 100)
 	pwd.Show(true, 100)
 
-	var pass []byte
 readPass:
 	for {
 		select {
@@ -189,11 +207,22 @@ readPass:
 			jsutil.FocusKeyboard()
 			hit.Play()
 
-			Pass <- pass
+			plen = len(pass)
+			var hash []byte
+			if foundHash {
+				hash = []byte(hashStr)
+			} else {
+				// b32 := sha256.Sum256(pass)
+				hash = pass
+				hashStr = string(hash)
+				fmt.Println(hashStr)
+			}
+
+			Pass <- hash
 
 			go inputbg.Show(false, 100)
 			typed.Show(false, 100)
-			pass = nil
+			// pass = nil
 			typed.Set("Reenter password")
 			jsutil.ClearKeyboard()
 
@@ -244,6 +273,13 @@ readPass:
 	}
 	sock.Close(SOCKName)
 
+	cookie = jsutil.Cookie{
+		"name": name,
+		"hash": hashStr,
+		"plen": strconv.Itoa(plen),
+	}
+	jsutil.StoreCookie(cookie)
+
 	SOCKAccount := shared.SOCKAccount(name, pass)
 	defer sock.Close(SOCKAccount)
 
@@ -292,26 +328,18 @@ readPass:
 	// }
 
 	blank := <-dxweb.LoadImage("assets/blank-scr.png")
+	cost2 := <-blank.LoadImage("assets/gpsos/cost_2.png")
+	gpsos10 := <-blank.LoadImage("assets/gpsos/gpsos_10.png")
+	gpsoHit := <-dxweb.LoadSound("assets/gpsos/hit.wav")
 	bx, by := blank.Pos()
 	_, bh := blank.Size()
-	blank.Move(bx, -bh/2)
-	_, by2 := blank.Pos()
-
 	halfGpso := 58
-
-	gpsoHit := <-dxweb.LoadSound("assets/gpsos/hit.wav")
-	cost2 := <-dxweb.LoadImage("assets/gpsos/cost_2.png")
 	c2w, _ := cost2.Size()
-	_, c2y := cost2.Pos()
-	cost2.Move(bx+c2w/2+halfGpso, by2)
-	c2x, _ := cost2.Pos()
-
-	gpsos10 := <-dxweb.LoadImage("assets/gpsos/gpsos_10.png")
+	cost2.Move(c2w/2+halfGpso, 0)
 	g10w, _ := gpsos10.Size()
-	_, g10y := gpsos10.Pos()
+	gpsos10.Move(-g10w/2+halfGpso, 0)
 
-	gpsos10.Move(bx-g10w/2+halfGpso, by2)
-	g10x, _ := gpsos10.Pos()
+	blank.Move(bx, -bh/2)
 
 	x, _ = die.Pos()
 	_, height = die.Size()
@@ -345,8 +373,8 @@ readPass:
 			gpsos10.Show(true)
 			blank.Show(true)
 
-			go cost2.Move(c2x, c2y, 250)
-			go gpsos10.Move(g10x, g10y, 250)
+			// go cost2.Move(c2x, c2y, 250)
+			// go gpsos10.Move(g10x, g10y, 250)
 			blank.Move(bx, by, 250)
 
 			land.Play()
