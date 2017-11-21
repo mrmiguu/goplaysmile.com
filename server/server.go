@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/mrmiguu/jsutil"
 
 	"github.com/mrmiguu/gps_online/shared"
 	"github.com/mrmiguu/sock"
@@ -119,11 +122,12 @@ type account struct {
 }
 
 func init() {
+	if err := jsutil.CompileWithGzip(sock.Root + "/main.go"); err != nil {
+		log.Fatal(err)
+	}
 	sock.Addr = ":80"
 	http.HandleFunc("/gpso_ipn", ipnHandler)
-
 	Names := sock.Rstring()
-
 	go logUsersIn(Names)
 }
 

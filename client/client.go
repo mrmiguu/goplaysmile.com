@@ -97,194 +97,189 @@ func main() {
 		maplds[mapnm] = dxweb.LoadImage("assets/maps/" + mapnm + ".png")
 	}
 
+	hit := <-hitld
+	bg := <-bgld
+
 	// check for frozen log-out
 	cookie := jsutil.LoadCookie()
-	// for k, v := range cookie {
-	// 	jsutil.Alert(k + "=" + v)
-	// }
-
-	splash := <-splashld
-	splash.Show(true, 2500)
-	gps := <-gpsld
-	gps.Show(true)
-	go splash.Show(false)
-
-	bg := <-bgld
-	pwd := <-pwdld
-	lgn := <-lgnld
-
-	_, height := pwd.Size()
-	x, _ := pwd.Pos()
-	pwd.Move(x, -height/2)
-	lgn.Move(x, height/2)
-
-	bg.Show(true)
-	lgn.Show(true)
-
-	hit := <-hitld
-	<-gps.Hit
-	input := jsutil.FocusKeyboard()
-	hit.Play()
-	go gps.Show(false, 125)
-
-	name, found := cookie["name"]
-	if !found {
-		name = "Enter a username"
-	}
-	typed := dxweb.NewText(name)
-	x, _ = typed.Pos()
-	inputy := height + height/2
-	inputbg := <-inputbgld
-	inputbg.Move(x, inputy)
-	typed.Move(x, inputy)
-	typed.Resize(84)
-
-	go inputbg.Show(true, 100)
-	typed.Show(true, 100)
-
-	Name := sock.Wstring()
-
-readName:
-	for {
-		select {
-		case <-lgn.Hit:
-			jsutil.FocusKeyboard()
-			hit.Play()
-
-			name = typed.Get()
-
-			go inputbg.Show(false, 100)
-			typed.Show(false, 100)
-			typed.Set("")
-			jsutil.ClearKeyboard()
-
-			go lgn.Move(x, -height/2, 100)
-			lgn.Show(false, 100)
-
-			break readName
-
-		case <-inputbg.Hit:
-			jsutil.FocusKeyboard()
-		case <-typed.Hit:
-			jsutil.FocusKeyboard()
-
-		case txt := <-input:
-			typed.Set(txt)
-		}
-	}
-
-	SOCKName := shared.SOCKName(name)
-	Found := sock.Rbool(SOCKName)
-	Pass := sock.Wbytes(SOCKName)
-	Err := sock.Rerror(SOCKName)
-
-	Name <- name
-
-	found = <-Found
-	once := found
-
+	name, foundName := cookie["name"]
 	hashStr, foundHash := cookie["hash"]
-	println("hash", hashStr)
-	hidden := "Enter a password"
-	plen, err := strconv.Atoi(cookie["plen"])
-	if foundHash && err == nil {
-		hidden = strings.Repeat("*", plen)
-	}
+	hash := []byte(hashStr)
+	if !foundName || !foundHash {
+		splash := <-splashld
+		splash.Show(true, 2500)
+		gps := <-gpsld
+		gps.Show(true)
+		go splash.Show(false)
 
-	typed.Set(hidden)
-	go inputbg.Show(true, 100)
-	typed.Show(true, 100)
+		pwd := <-pwdld
+		lgn := <-lgnld
 
-	go pwd.Move(x, height/2, 100)
-	pwd.Show(true, 100)
+		_, height := pwd.Size()
+		x, _ := pwd.Pos()
+		pwd.Move(x, -height/2)
+		lgn.Move(x, height/2)
 
-	var pass []byte
+		bg.Show(true)
+		lgn.Show(true)
 
-readPass:
-	for {
-		select {
-		case <-pwd.Hit:
-			jsutil.FocusKeyboard()
-			hit.Play()
+		<-gps.Hit
+		input := jsutil.FocusKeyboard()
+		hit.Play()
+		go gps.Show(false, 125)
 
-			var hash []byte
-			if foundHash && len(pass) == 0 {
-				hash = []byte(hashStr)
-			} else {
-				// b32 := sha256.Sum256(pass)
-				plen = len(pass)
-				hash = pass
-				hashStr = string(hash)
-			}
-			fmt.Println(hashStr)
-
-			Pass <- hash
-
-			go inputbg.Show(false, 100)
-			typed.Show(false, 100)
-			// pass = nil
-			typed.Set("Reenter password")
-			jsutil.ClearKeyboard()
-
-			go pwd.Move(x, -height/2, 100)
-			pwd.Show(false, 100)
-
-			if found || once {
-				continue
-			}
-
-			go inputbg.Show(true, 100)
-			typed.Show(true, 100)
-
-			go pwd.Move(x, height/2, 100)
-			pwd.Show(true, 100)
-
-			once = true
-
-		case err := <-Err:
-			if err == nil {
-				jsutil.BlurKeyboard()
-				break readPass
-			}
-
-			once = false
-
-			typed.Set(err.Error())
-			go inputbg.Show(true, 100)
-			typed.Show(true, 100)
-
-			go pwd.Move(x, height/2, 100)
-			pwd.Show(true, 100)
-
-		case <-inputbg.Hit:
-			jsutil.FocusKeyboard()
-		case <-typed.Hit:
-			jsutil.FocusKeyboard()
-
-		case txt := <-input:
-			L := len(txt)
-			var hidden string
-			if L > 0 {
-				hidden = strings.Repeat("*", L-1) + string(txt[L-1])
-			}
-			typed.Set(hidden)
-			pass = []byte(txt)
+		if !foundName {
+			name = "Enter a username"
 		}
-	}
-	sock.Close(SOCKName)
+		typed := dxweb.NewText(name)
+		x, _ = typed.Pos()
+		inputy := height + height/2
+		inputbg := <-inputbgld
+		inputbg.Move(x, inputy)
+		typed.Move(x, inputy)
+		typed.Resize(84)
 
-	cookie = jsutil.Cookie{
-		"name": name,
-		"hash": hashStr,
-		"plen": strconv.Itoa(plen),
-	}
-	jsutil.StoreCookie(cookie)
+		go inputbg.Show(true, 100)
+		typed.Show(true, 100)
 
-	SOCKAccount := shared.SOCKAccount(name, pass)
+		Name := sock.Wstring()
+
+	readName:
+		for {
+			select {
+			case <-lgn.Hit:
+				jsutil.FocusKeyboard()
+				hit.Play()
+
+				name = typed.Get()
+
+				go inputbg.Show(false, 100)
+				typed.Show(false, 100)
+				typed.Set("")
+				jsutil.ClearKeyboard()
+
+				go lgn.Move(x, -height/2, 100)
+				lgn.Show(false, 100)
+
+				break readName
+
+			case <-inputbg.Hit:
+				jsutil.FocusKeyboard()
+			case <-typed.Hit:
+				jsutil.FocusKeyboard()
+
+			case txt := <-input:
+				typed.Set(txt)
+			}
+		}
+
+		SOCKName := shared.SOCKName(name)
+		Found := sock.Rbool(SOCKName)
+		Pass := sock.Wbytes(SOCKName)
+		Err := sock.Rerror(SOCKName)
+
+		Name <- name
+
+		found := <-Found
+		once := found
+
+		hidden := "Enter a password"
+		plen, err := strconv.Atoi(cookie["plen"])
+		if foundHash && err == nil {
+			hidden = strings.Repeat("*", plen)
+		}
+
+		typed.Set(hidden)
+		go inputbg.Show(true, 100)
+		typed.Show(true, 100)
+
+		go pwd.Move(x, height/2, 100)
+		pwd.Show(true, 100)
+
+		var pass []byte
+
+	readPass:
+		for {
+			select {
+			case <-pwd.Hit:
+				jsutil.FocusKeyboard()
+				hit.Play()
+
+				if foundHash && len(pass) == 0 {
+					hash = []byte(hashStr)
+				} else {
+					// b32 := sha256.Sum256(pass)
+					plen = len(pass)
+					hash = pass
+					hashStr = string(hash)
+				}
+				fmt.Println(hashStr)
+
+				Pass <- hash
+
+				go inputbg.Show(false, 100)
+				typed.Show(false, 100)
+				// pass = nil
+				typed.Set("Reenter password")
+				jsutil.ClearKeyboard()
+
+				go pwd.Move(x, -height/2, 100)
+				pwd.Show(false, 100)
+
+				if found || once {
+					continue
+				}
+
+				go inputbg.Show(true, 100)
+				typed.Show(true, 100)
+
+				go pwd.Move(x, height/2, 100)
+				pwd.Show(true, 100)
+
+				once = true
+
+			case err := <-Err:
+				if err == nil {
+					jsutil.BlurKeyboard()
+					break readPass
+				}
+
+				once = false
+
+				typed.Set(err.Error())
+				go inputbg.Show(true, 100)
+				typed.Show(true, 100)
+
+				go pwd.Move(x, height/2, 100)
+				pwd.Show(true, 100)
+
+			case <-inputbg.Hit:
+				jsutil.FocusKeyboard()
+			case <-typed.Hit:
+				jsutil.FocusKeyboard()
+
+			case txt := <-input:
+				L := len(txt)
+				var hidden string
+				if L > 0 {
+					hidden = strings.Repeat("*", L-1) + string(txt[L-1])
+				}
+				typed.Set(hidden)
+				pass = []byte(txt)
+			}
+		}
+		sock.Close(SOCKName)
+
+		cookie = jsutil.Cookie{
+			"name": name,
+			"hash": hashStr,
+			"plen": strconv.Itoa(plen),
+		}
+		jsutil.StoreCookie(cookie)
+	}
+
+	SOCKAccount := shared.SOCKAccount(name, hash)
 	defer sock.Close(SOCKAccount)
-
-	// bgm := <-bgmld
-	// bgm.Loop()
 
 	maps := map[string]dxweb.Image{}
 	for mapnm, mapld := range maplds {
@@ -328,6 +323,7 @@ readPass:
 	// }
 
 	blank := <-dxweb.LoadImage("assets/blank-scr.png")
+	tab := <-blank.LoadImage("assets/tab.png")
 	cost2 := <-blank.LoadImage("assets/gpsos/cost_2.png")
 	gpsos10 := <-blank.LoadImage("assets/gpsos/gpsos_10.png")
 	gpsoHit := <-dxweb.LoadSound("assets/gpsos/hit.wav")
@@ -338,11 +334,43 @@ readPass:
 	cost2.Move(c2w/2+halfGpso, 0)
 	g10w, _ := gpsos10.Size()
 	gpsos10.Move(-g10w/2+halfGpso, 0)
+	_, th := tab.Size()
+	tab.Move(0, bh/2-th/2)
 
-	blank.Move(bx, -bh/2)
+	// bgm := <-bgmld
+	// bgm.Loop()
+	bg.Show(true)
 
-	x, _ = die.Pos()
-	_, height = die.Size()
+	payPal := func(id string) {
+		jsutil.Redirect("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=" + id + "&custom=" + name)
+	}
+	gpsosUI := func() {
+		select {
+		case <-tab.Hit:
+			hit.Play()
+			blank.Move(bx, -bh/2, 250)
+			blank.Show(false)
+		case <-gpsos10.Hit:
+			gpsoHit.Play()
+			payPal("3AGKVQVLS9WF2")
+		}
+	}
+
+	if foundName && foundHash {
+		blank.Show(true)
+		// change so parent's Show changes children
+		// change so parent's Show changes children
+		// change so parent's Show changes children
+		tab.Show(true)
+		cost2.Show(true)
+		gpsos10.Show(true)
+		// change so parent's Show changes children
+		// change so parent's Show changes children
+		// change so parent's Show changes children
+	}
+
+	x, _ := die.Pos()
+	_, height := die.Size()
 	shdw.Move(x, 787-height/2)
 	die.Move(x, 787-height/2)
 	rand.Seed(int64(time.Now().Nanosecond()))
@@ -364,24 +392,33 @@ readPass:
 	icoGpsos.Move(icobar.Pos())
 	icoGpsos.Show(true)
 
+	if foundName && foundHash {
+		gpsosUI()
+	} else {
+		blank.Move(bx, -bh/2)
+	}
+
 	for {
 		select {
 		case <-icoGpsos.Hit:
 			hit.Play()
 
+			blank.Show(true)
+			// change so parent's Show changes children
+			// change so parent's Show changes children
+			// change so parent's Show changes children
+			tab.Show(true)
 			cost2.Show(true)
 			gpsos10.Show(true)
-			blank.Show(true)
+			// change so parent's Show changes children
+			// change so parent's Show changes children
+			// change so parent's Show changes children
 
-			// go cost2.Move(c2x, c2y, 250)
-			// go gpsos10.Move(g10x, g10y, 250)
 			blank.Move(bx, by, 250)
 
 			land.Play()
 
-			<-gpsos10.Hit
-			gpsoHit.Play()
-			jsutil.Redirect("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=3AGKVQVLS9WF2&custom=" + name)
+			gpsosUI()
 			continue
 
 		case <-paperdoll.Hit:
