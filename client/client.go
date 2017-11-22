@@ -274,6 +274,7 @@ func main() {
 			"name": name,
 			"hash": hashStr,
 			"plen": strconv.Itoa(plen),
+			// "pay":  strconv.FormatBool(false),
 		}
 		jsutil.StoreCookie(cookie)
 	}
