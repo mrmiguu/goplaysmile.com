@@ -309,38 +309,38 @@ func main() {
 	land := <-dxweb.LoadSound("assets/die/land.wav")
 
 	dolls := []dxweb.Image{
-		<-dxweb.LoadImage("assets/die/hats/boot.png"),
+		// <-dxweb.LoadImage("assets/die/hats/boot.png"),
 		// <-dxweb.LoadImage("assets/die/hats/brownshoe.png"),
 		// <-dxweb.LoadImage("assets/die/hats/catmask.png"),
 		// <-dxweb.LoadImage("assets/die/hats/crosshelm.png"),
-		<-dxweb.LoadImage("assets/die/hats/crown.png"),
+		// <-dxweb.LoadImage("assets/die/hats/crown.png"),
 		// <-dxweb.LoadImage("assets/die/hats/dogmask.png"),
-		<-dxweb.LoadImage("assets/die/hats/fryingpan.png"),
-		<-dxweb.LoadImage("assets/die/hats/gradcap.png"),
-		<-dxweb.LoadImage("assets/die/hats/highheel.png"),
+		// <-dxweb.LoadImage("assets/die/hats/fryingpan.png"),
+		// <-dxweb.LoadImage("assets/die/hats/gradcap.png"),
+		// <-dxweb.LoadImage("assets/die/hats/highheel.png"),
 		// <-dxweb.LoadImage("assets/die/hats/sandal.png"),
-		<-dxweb.LoadImage("assets/die/hats/shortcake.png"),
-		<-dxweb.LoadImage("assets/die/hats/sneaker.png"),
+		// <-dxweb.LoadImage("assets/die/hats/shortcake.png"),
+		// <-dxweb.LoadImage("assets/die/hats/sneaker.png"),
 		<-dxweb.LoadImage("assets/die/hats/sunhat.png"),
-		<-dxweb.LoadImage("assets/die/hats/tophat.png"),
+		// <-dxweb.LoadImage("assets/die/hats/tophat.png"),
 	}
 
 	blank := <-dxweb.LoadImage("assets/blank-scr.png")
 	bagItems := []dxweb.Image{
-		// <-blank.LoadImage("assets/die/hats/boot.png"),
+		<-blank.LoadImage("assets/die/hats/boot.png"),
 		<-blank.LoadImage("assets/die/hats/brownshoe.png"),
 		<-blank.LoadImage("assets/die/hats/catmask.png"),
 		<-blank.LoadImage("assets/die/hats/crosshelm.png"),
-		// <-blank.LoadImage("assets/die/hats/crown.png"),
+		<-blank.LoadImage("assets/die/hats/crown.png"),
 		<-blank.LoadImage("assets/die/hats/dogmask.png"),
-		// <-blank.LoadImage("assets/die/hats/fryingpan.png"),
-		// <-blank.LoadImage("assets/die/hats/gradcap.png"),
-		// <-blank.LoadImage("assets/die/hats/highheel.png"),
+		<-blank.LoadImage("assets/die/hats/fryingpan.png"),
+		<-blank.LoadImage("assets/die/hats/gradcap.png"),
+		<-blank.LoadImage("assets/die/hats/highheel.png"),
 		<-blank.LoadImage("assets/die/hats/sandal.png"),
-		// <-blank.LoadImage("assets/die/hats/shortcake.png"),
-		// <-blank.LoadImage("assets/die/hats/sneaker.png"),
+		<-blank.LoadImage("assets/die/hats/shortcake.png"),
+		<-blank.LoadImage("assets/die/hats/sneaker.png"),
 		// <-blank.LoadImage("assets/die/hats/sunhat.png"),
-		// <-blank.LoadImage("assets/die/hats/tophat.png"),
+		<-blank.LoadImage("assets/die/hats/tophat.png"),
 	}
 	scrollverlay := <-blank.LoadImage("assets/scrollverlay.png")
 	tab := <-blank.LoadImage("assets/tab.png")
