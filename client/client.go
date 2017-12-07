@@ -298,6 +298,11 @@ func main() {
 	// icoMarket := <-dxweb.LoadImage("assets/ico-market.png")
 	// icoSearch := <-dxweb.LoadImage("assets/ico-search.png")
 
+	dash := <-dxweb.LoadImage("assets/dash.png")
+	dashX, _ := dash.Pos()
+	dash.Move(dashX, dxweb.Height*3/10)
+	gpsmap := <-dash.LoadImage("assets/etc/map.png", 382, 218)
+
 	shdw := <-dxweb.LoadImage("assets/die/shadow.png")
 	die := <-dxweb.LoadSprite("assets/die/dice.png", 1, 6)
 	lift := <-dxweb.LoadSound("assets/die/lift.wav")
@@ -501,6 +506,9 @@ func main() {
 	icoBag.Show(true)
 	icoGpsos.Show(true)
 	icoGiftshop.Show(true)
+
+	dash.Show(true)
+	gpsmap.Show(true)
 
 	if foundName && foundHash {
 		gpsosUI()
